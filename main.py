@@ -14,8 +14,6 @@ class Opponent:
 
 class Argument:
   pass
-  # label = "string"
-  # attackers = set(arguments...)
 
 class Game:
   def __init__(self, arguments=None, attack_relations=None):
