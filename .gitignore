@@ -8,6 +8,7 @@
 [Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
+venv/*
 
 # Python
 # https://github.com/github/gitignore/blob/master/Python.gitignore
