@@ -33,6 +33,7 @@ class Game:
     return self
 
   def remove(self, argument):
+    self.arguments = self.arguments.difference({self.last_argument})
     return self
 
 def main():

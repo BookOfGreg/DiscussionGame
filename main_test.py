@@ -19,9 +19,8 @@ class DiscussionTest(unittest.TestCase):
   def test_concede(self):
     second_argument = Argument()
     third_argument = Argument()
-    game_state = Game(set([self.argument, second_argument, third_argument]),
-                      list([(second_argument, self.argument),
-                            (third_argument, second_argument)]))
+    game_state = self.opponent.could_be(second_argument, self.game)
+    game_state = self.proponent.has_to_be(third_argument, game_state)
     expected_game = Game(set([self.argument, second_argument]),
                          list([(second_argument, self.argument)]))
     new_game = self.opponent.concede(third_argument, game_state)
