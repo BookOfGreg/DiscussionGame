@@ -4,7 +4,7 @@ class Proponent:
 
 class Opponent:
   def could_be(self, argument, game):
-    return game.add(argument, (argument, game.last_argument))
+    return game.add(argument)
 
 #   def concede(self, argument, game):
 #     return False
@@ -23,8 +23,8 @@ class Game:
     self.attack_relations = attack_relations
     self.last_argument = None
 
-  def add(self, argument, attack_relation=None):
-    if attack_relation != None: self.attack_relations.append(attack_relation)
+  def add(self, argument):
+    if self.last_argument != None: self.attack_relations.append((argument, self.last_argument))
     self.arguments.add(argument)
     self.last_argument = argument
     return self
