@@ -9,8 +9,8 @@ class Opponent:
   def concede(self, argument, game):
     return game.remove(argument)
 
-#   def retract(self, argument, game):
-#     return False
+  def retract(self, argument, game):
+    return game.remove(argument)
 
 class Argument:
   pass
@@ -34,7 +34,7 @@ class Game:
 
   def remove(self, argument):
     self.arguments = self.arguments.difference({self.last_argument})
-    self.last_argument = self.attack_relations.pop(-1)
+    self.last_argument = self.attack_relations.pop(-1)[-1]
     return self
 
 def main():
