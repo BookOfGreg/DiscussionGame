@@ -7,7 +7,7 @@ class Opponent:
     return game.add(argument)
 
   def concede(self, argument, game):
-    return False
+    return game.remove(argument)
 
 #   def retract(self, argument, game):
 #     return False
@@ -31,5 +31,11 @@ class Game:
     self.arguments.add(argument)
     self.last_argument = argument
     return self
+
+  def remove(self, argument):
+    return self
+
+def main():
+  pass
 
 if __name__ == "__main__": main()
