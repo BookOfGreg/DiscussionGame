@@ -8,33 +8,32 @@ class TestRules(unittest.TestCase):
     self.assertEqual(self.first_argument.label, "In")
 
   def test_concede_happens_when_all_attackers_are_retracted(self):
-    self.game = self.proponent.has_to_be(self.first_argument, Game())
-    self.game = self.opponent.could_be(self.second_argument, self.game)
-    self.game = self.proponent.has_to_be(self.third_argument, self.game)
     self.assertTrue(self.opponent.concede(self.third_argument, self.game))
     self.assertTrue(self.opponent.retract(self.second_argument, self.game))
     self.assertTrue(self.opponent.concede(self.first_argument, self.game))
 
   def test_cannot_concede_when_any_attacker_is_undecided(self):
-    self.game = self.proponent.has_to_be(self.first_argument, Game())
-    self.game = self.opponent.could_be(self.second_argument, self.game)
-    self.game = self.proponent.has_to_be(self.third_argument, self.game)
     with self.assertRaises(InvalidMoveError):
       self.opponent.concede(self.second_argument, self.game)
 
   def test_retract_when_attacker_conceded(self):
-    self.game = self.proponent.has_to_be(self.first_argument, Game())
-    self.game = self.opponent.could_be(self.second_argument, self.game)
-    self.game = self.proponent.has_to_be(self.third_argument, self.game)
     self.game = self.opponent.concede(self.third_argument, self.game)
     self.assertTrue(self.opponent.retract(self.second_argument, self.game))
 
   def test_cannot_retract_when_no_attackers_conceded(self):
-    self.game = self.proponent.has_to_be(self.first_argument, Game())
-    self.game = self.opponent.could_be(self.second_argument, self.game)
-    self.game = self.proponent.has_to_be(self.third_argument, self.game)
+
     with self.assertRaises(InvalidMoveError):
       self.opponent.retract(self.second_argument, self.game)
+
+  def test_could_be_attacks_last_has_to_be(self):
+    self.assertTrue(self.opponent.could_be(Argument(), self.game))
+    # As long as the could_be signature does not change, there is no way to
+    # attack anyone other than the last argument.
+
+  def test_could_be_attacks_last_has_to_be(self):
+    self.assertTrue(self.proponent.has_to_be(Argument(), self.game))
+    # As long as the has_to_be signature does not change, there is no way to
+    # attack anyone other than the last argument.
 
   def setUp(self):
     self.proponent = Proponent()
@@ -42,6 +41,9 @@ class TestRules(unittest.TestCase):
     self.first_argument = Argument()
     self.second_argument = Argument()
     self.third_argument = Argument()
+    self.game = self.proponent.has_to_be(self.first_argument, Game())
+    self.game = self.opponent.could_be(self.second_argument, self.game)
+    self.game = self.proponent.has_to_be(self.third_argument, self.game)
 
 
 class TestArgument(unittest.TestCase):
