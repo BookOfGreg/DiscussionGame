@@ -1,6 +1,17 @@
 from main import *
 import unittest
 
+class Rules(unittest.TestCase):
+  def test_concede_happens_when_there_are_no_attackers(self):
+    self.proponent = Proponent()
+    self.opponent = Opponent()
+    self.argument = Argument()
+    self.game = self.proponent.has_to_be(self.argument, Game())
+    self.assertTrue(self.opponent.concede(self.argument, Game()))
+
+  def test_concede_happens_when_all_attackers_are_retracted(self):
+    pass
+
 class DiscussionTest(unittest.TestCase):
   def test_has_to_be(self):
     expected_game = Game(set([self.argument]))

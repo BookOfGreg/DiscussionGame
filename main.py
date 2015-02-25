@@ -32,7 +32,7 @@ class Game:
 
   def remove(self, argument):
     self.arguments = self.arguments.difference({self.last_argument})
-    self.last_argument = self.attack_relations.pop(-1)[-1]
+    if len(self.attack_relations) > 0: self.last_argument = self.attack_relations.pop(-1)[-1]
     return self
 
 def main():
