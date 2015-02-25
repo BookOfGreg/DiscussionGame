@@ -1,65 +1,86 @@
 from main import *
 import unittest
 
-class Rules(unittest.TestCase):
+class TestRules(unittest.TestCase):
   def test_concede_happens_when_there_are_no_attackers(self):
-    self.proponent = Proponent()
-    self.opponent = Opponent()
-    self.argument = Argument()
-    self.game = self.proponent.has_to_be(self.argument, Game())
-    self.assertTrue(self.opponent.concede(self.argument, self.game))
+    self.game = self.proponent.has_to_be(self.first_argument, Game())
+    self.assertTrue(self.opponent.concede(self.first_argument, self.game))
+    self.assertEqual(self.first_argument.label, "In")
+
+  def test_concede_happens_when_all_attackers_are_retracted(self):
+    pass
+
+  def test_cannot_concede_when_any_attacker_is_undecided(self):
+    self.game = self.proponent.has_to_be(self.first_argument, Game())
+    self.game = self.opponent.could_be(self.second_argument, self.game)
+    self.game = self.proponent.has_to_be(self.third_argument, self.game)
+    with self.assertRaises(InvalidMoveError):
+      self.opponent.concede(self.second_argument, self.game)
 
   def test_retract_when_attacker_conceded(self):
-    self.proponent = Proponent()
-    self.opponent = Opponent()
-    self.first_argument = Argument()
-    self.second_argument = Argument()
-    self.third_argument = Argument()
     self.game = self.proponent.has_to_be(self.first_argument, Game())
     self.game = self.opponent.could_be(self.second_argument, self.game)
     self.game = self.proponent.has_to_be(self.third_argument, self.game)
     self.game = self.opponent.concede(self.third_argument, self.game)
     self.assertTrue(self.opponent.retract(self.second_argument, self.game))
 
-  def test_concede_happens_when_all_attackers_are_retracted(self):
-    pass
+  def test_cannot_retract_when_no_attackers_conceded(self):
+    self.game = self.proponent.has_to_be(self.first_argument, Game())
+    self.game = self.opponent.could_be(self.second_argument, self.game)
+    self.game = self.proponent.has_to_be(self.third_argument, self.game)
+    with self.assertRaises(InvalidMoveError):
+      self.opponent.retract(self.second_argument, self.game)
 
-class DiscussionTest(unittest.TestCase):
+  def setUp(self):
+    self.proponent = Proponent()
+    self.opponent = Opponent()
+    self.first_argument = Argument()
+    self.second_argument = Argument()
+    self.third_argument = Argument()
+
+
+class TestArgument(unittest.TestCase):
+  def test_argument_starts_undecided(self):
+    argument = Argument()
+    self.assertEqual(argument.label, "Undec")
+
+  def test_arguments_can_be_in_or_out(self):
+    argument = Argument("In")
+    self.assertEqual(argument.label, "In")
+    argument = Argument("Out")
+    self.assertEqual(argument.label, "Out")
+
+class TestMoves(unittest.TestCase):
   def test_has_to_be(self):
     expected_game = Game(set([self.argument]))
 
     self.assertEqual(self.game.arguments, expected_game.arguments)
 
   def test_could_be(self):
-    second_argument = Argument()
-    new_game = self.opponent.could_be(second_argument, self.game)
+    new_game = self.opponent.could_be(self.second_argument, self.game)
 
-    expected_game = Game(set([self.argument, second_argument]),
-                         list([(second_argument, self.argument)]))
+    expected_game = Game(set([self.argument, self.second_argument]),
+                         list([(self.second_argument, self.argument)]))
 
     self.assertEqual(new_game.arguments, expected_game.arguments)
     self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
 
   def test_concede(self):
-    second_argument = Argument()
-    third_argument = Argument()
-    game_state = self.opponent.could_be(second_argument, self.game)
-    game_state = self.proponent.has_to_be(third_argument, game_state)
-    new_game = self.opponent.concede(third_argument, game_state)
+    game_state = self.opponent.could_be(self.second_argument, self.game)
+    game_state = self.proponent.has_to_be(self.third_argument, game_state)
+    new_game = self.opponent.concede(self.third_argument, game_state)
 
-    expected_game = Game(set([self.argument, second_argument]),
-                         list([(second_argument, self.argument)]))
+    expected_game = Game(set([self.argument, self.second_argument]),
+                         list([(self.second_argument, self.argument)]))
 
     self.assertEqual(new_game.arguments, expected_game.arguments)
     self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
 
   def test_retract(self):
-    second_argument = Argument()
-    third_argument = Argument()
-    game_state = self.opponent.could_be(second_argument, self.game)
-    game_state = self.proponent.has_to_be(third_argument, game_state)
-    new_game = self.opponent.concede(third_argument, game_state)
-    new_game = self.opponent.retract(second_argument, game_state)
+    game_state = self.opponent.could_be(self.second_argument, self.game)
+    game_state = self.proponent.has_to_be(self.third_argument, game_state)
+    new_game = self.opponent.concede(self.third_argument, game_state)
+    new_game = self.opponent.retract(self.second_argument, game_state)
 
     expected_game = Game(set([self.argument]),
                          list())
@@ -71,4 +92,6 @@ class DiscussionTest(unittest.TestCase):
     self.proponent = Proponent()
     self.opponent = Opponent()
     self.argument = Argument()
+    self.second_argument = Argument()
+    self.third_argument = Argument()
     self.game = self.proponent.has_to_be(self.argument, Game())
