@@ -8,7 +8,12 @@ class TestRules(unittest.TestCase):
     self.assertEqual(self.first_argument.label, "In")
 
   def test_concede_happens_when_all_attackers_are_retracted(self):
-    pass
+    self.game = self.proponent.has_to_be(self.first_argument, Game())
+    self.game = self.opponent.could_be(self.second_argument, self.game)
+    self.game = self.proponent.has_to_be(self.third_argument, self.game)
+    self.assertTrue(self.opponent.concede(self.third_argument, self.game))
+    self.assertTrue(self.opponent.retract(self.second_argument, self.game))
+    self.assertTrue(self.opponent.concede(self.first_argument, self.game))
 
   def test_cannot_concede_when_any_attacker_is_undecided(self):
     self.game = self.proponent.has_to_be(self.first_argument, Game())
