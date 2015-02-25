@@ -17,7 +17,7 @@ class Rules(unittest.TestCase):
     self.third_argument = Argument()
     self.game = self.proponent.has_to_be(self.first_argument, Game())
     self.game = self.opponent.could_be(self.second_argument, self.game)
-    self.game = self.proponent.has_to_be(self.third_argument, Game())
+    self.game = self.proponent.has_to_be(self.third_argument, self.game)
     self.game = self.opponent.concede(self.third_argument, self.game)
     self.assertTrue(self.opponent.retract(self.second_argument, self.game))
 
