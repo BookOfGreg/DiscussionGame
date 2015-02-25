@@ -7,7 +7,19 @@ class Rules(unittest.TestCase):
     self.opponent = Opponent()
     self.argument = Argument()
     self.game = self.proponent.has_to_be(self.argument, Game())
-    self.assertTrue(self.opponent.concede(self.argument, Game()))
+    self.assertTrue(self.opponent.concede(self.argument, self.game))
+
+  def test_retract_when_attacker_conceded(self):
+    self.proponent = Proponent()
+    self.opponent = Opponent()
+    self.first_argument = Argument()
+    self.second_argument = Argument()
+    self.third_argument = Argument()
+    self.game = self.proponent.has_to_be(self.first_argument, Game())
+    self.game = self.opponent.could_be(self.second_argument, self.game)
+    self.game = self.proponent.has_to_be(self.third_argument, Game())
+    self.game = self.opponent.concede(self.third_argument, self.game)
+    self.assertTrue(self.opponent.retract(self.second_argument, self.game))
 
   def test_concede_happens_when_all_attackers_are_retracted(self):
     pass
