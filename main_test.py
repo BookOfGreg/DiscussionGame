@@ -1,6 +1,19 @@
 from main import *
 import unittest
 
+class TestPlayers(unittest.TestCase):
+  def test_proponent_knows_possible_moves(self):
+    pass
+
+  def test_proponent_knows_valid_moves(self):
+    pass
+
+  def test_opponent_knows_possible_moves(self):
+    pass
+
+  def test_opponent_knows_valid_moves(self):
+    pass
+
 class TestRules(unittest.TestCase):
   def test_concede_happens_when_there_are_no_attackers(self):
     self.game = self.proponent.has_to_be(self.first_argument, Game())
