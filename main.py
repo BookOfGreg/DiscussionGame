@@ -1,16 +1,32 @@
 class Proponent:
-  def has_to_be(self, argument, game):
-    return game.add(argument)
+  def __init__(self, game, reasoning=None):
+    # if reasoning is None: reasoning = # Default knowledge source or any argument allowed
+    self.game = game
+    self.reasoning = reasoning
+    # load from a file or delegate to another class in knowledge/reasoning/validator.
+
+  def has_to_be(self, argument):
+    return self.game.add(argument)
+
+  def possible_moves(self): # Extract to superclass
+    return self.reasoning.find_moves(self.game.open_arguments())
 
 class Opponent:
-  def could_be(self, argument, game):
-    return game.add(argument)
+  def __init__(self, game, reasoning=None):
+    self.game = game
+    self.reasoning = reasoning
 
-  def concede(self, argument, game):
-    return game.concede(argument)
+  def could_be(self, argument):
+    return self.game.add(argument)
 
-  def retract(self, argument, game):
-    return game.retract(argument)
+  def concede(self, argument):
+    return self.game.concede(argument)
+
+  def retract(self, argument):
+    return self.game.retract(argument)
+
+  def possible_moves(self):
+    return self.reasoning.find_moves(self.game.open_arguments())
 
 class Argument:
   def __init__(self, label=None):
@@ -19,6 +35,28 @@ class Argument:
 
   def add_label(self, label):
     self.label = label
+
+class ArgumentFramework:
+  def __init__(self, arguments, attack_relations):
+    if arguments is None: arguments = set()
+    if attack_relations is None: attack_relations = list()
+
+    self.arguments = arguments
+    self.attack_relations = attack_relations
+
+  def find_moves(self, arguments):
+    possible_arguments = list()
+    # This will be slow...
+    for relation in self.attack_relations:
+      if self._target(relation) in arguments and self._attacker(relation) not in arguments:
+        possible_arguments.append(self._attacker(relation))
+    return set(possible_arguments)
+
+  def _attacker(self, relation):
+    return relation[0]
+
+  def _target(self, relation):
+    return relation[1]
 
 class Game:
   def __init__(self, arguments=None, attack_relations=None, labeled_arguments=None, complete_attack_relations=None):
@@ -68,6 +106,9 @@ class Game:
 
   def _target(self, relation):
     return relation[1]
+
+  def open_arguments(self):
+    return self.arguments
 
 class InvalidMoveError(Exception):
   def __init__(self, value):
