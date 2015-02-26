@@ -23,14 +23,16 @@ class TestPlayers(unittest.TestCase):
                       set([third_argument, fourth_argument]))
 
 
-  def test_proponent_knows_valid_moves(self):
-    pass
-
-  def test_opponent_knows_possible_moves(self):
-    pass
-
-  def test_opponent_knows_valid_moves(self):
-    pass
+  def test_players_know_validity_of_move(self):
+    first_argument = Argument()
+    second_argument = Argument()
+    knowledge = ArgumentFramework(set([first_argument, second_argument]),
+                                 list([(second_argument, first_argument)]))
+    game = Game()
+    proponent = Proponent(game, knowledge)
+    opponent = Opponent(game, knowledge)
+    proponent.has_to_be(first_argument)
+    self.assertTrue(opponent.is_valid_move(second_argument))
 
 class TestRules(unittest.TestCase):
   def test_concede_happens_when_there_are_no_attackers(self):

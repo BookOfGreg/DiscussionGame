@@ -6,10 +6,17 @@ class Proponent:
     # load from a file or delegate to another class in knowledge/reasoning/validator.
 
   def has_to_be(self, argument):
-    return self.game.add(argument)
+    if self.is_valid_move(argument): #strict mode?
+      return self.game.add(argument)
+    raise InvalidMoveError("My Argument is BullShit (technical definition)")
 
   def possible_moves(self): # Extract to superclass
     return self.reasoning.find_moves(self.game.open_arguments())
+
+  def is_valid_move(self, argument):
+    if self.reasoning is None: return True
+    if self.game.last_argument is None: return True
+    return self.reasoning.is_valid((argument, self.game.last_argument))
 
 class Opponent:
   def __init__(self, game, reasoning=None):
@@ -17,7 +24,9 @@ class Opponent:
     self.reasoning = reasoning
 
   def could_be(self, argument):
-    return self.game.add(argument)
+    if self.is_valid_move(argument): #strict mode?
+      return self.game.add(argument)
+    raise InvalidMoveError("My Argument is BullShit (technical definition)")
 
   def concede(self, argument):
     return self.game.concede(argument)
@@ -27,6 +36,10 @@ class Opponent:
 
   def possible_moves(self):
     return self.reasoning.find_moves(self.game.open_arguments())
+
+  def is_valid_move(self, argument):
+    if self.reasoning is None: return True
+    return self.reasoning.is_valid((argument, self.game.last_argument))
 
 class Argument:
   def __init__(self, label=None):
@@ -51,6 +64,9 @@ class ArgumentFramework:
       if self._target(relation) in arguments and self._attacker(relation) not in arguments:
         possible_arguments.append(self._attacker(relation))
     return set(possible_arguments)
+
+  def is_valid(self, attack_relation):
+    return attack_relation in self.attack_relations
 
   def _attacker(self, relation):
     return relation[0]
