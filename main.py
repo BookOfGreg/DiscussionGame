@@ -5,7 +5,7 @@ class Proponent:
     # load from a file or delegate to another class in knowledge/reasoning/validator.
 
   def has_to_be(self, argument):
-    if self.is_valid_move(argument): #strict mode?
+    if self.is_valid_move(argument):
       return self.game.add(argument)
     raise InvalidMoveError("My Argument is BullShit (technical definition)")
 
@@ -22,7 +22,7 @@ class Opponent:
     self.knowledge_base = knowledge_base
 
   def could_be(self, argument):
-    if self.is_valid_move(argument): #strict mode?
+    if self.is_valid_move(argument):
       return self.game.add(argument)
     raise InvalidMoveError("My Argument is BullShit (technical definition)")
 
