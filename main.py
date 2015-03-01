@@ -1,7 +1,6 @@
 class Proponent:
-  def __init__(self, game, knowledge_base):
+  def __init__(self, game):
     self.game = game
-    self.knowledge_base = knowledge_base
     # load from a file or delegate to another class in knowledge/reasoning/validator.
 
   def has_to_be(self, argument):
@@ -9,17 +8,16 @@ class Proponent:
       return self.game.add(argument)
     raise InvalidMoveError("My Argument is BullShit (technical definition)")
 
-  def possible_moves(self): # Extract to superclass
-    return self.knowledge_base.find_moves(self.game.open_arguments())
+  # def possible_moves(self): # Extract to superclass
+  #   return self.game.find_moves(self.game.open_arguments())
 
   def is_valid_move(self, argument):
     if self.game.last_argument is None: return True
-    return self.knowledge_base.is_valid((argument, self.game.last_argument))
+    return self.game.is_valid(argument)
 
 class Opponent:
-  def __init__(self, game, knowledge_base):
+  def __init__(self, game):
     self.game = game
-    self.knowledge_base = knowledge_base
 
   def could_be(self, argument):
     if self.is_valid_move(argument):
@@ -32,11 +30,11 @@ class Opponent:
   def retract(self, argument):
     return self.game.retract(argument)
 
-  def possible_moves(self):
-    return self.knowledge_base.find_moves(self.game.open_arguments())
+  # def possible_moves(self):
+  #   return self.game.find_moves(self.game.open_arguments())
 
   def is_valid_move(self, argument):
-    return self.knowledge_base.is_valid((argument, self.game.last_argument))
+    return self.game.is_valid(argument)
 
 class Argument:
   def __init__(self, label):
@@ -62,16 +60,14 @@ class ArgumentFramework:
         possible_arguments.append(attacker)
     return set(possible_arguments)
 
-  def is_valid(self, attack_relation):
-    return attack_relation in self.attack_relations
-
 class Game:
-  def __init__(self, arguments=None, attack_relations=None, complete_arguments=None, complete_attack_relations=None):
+  def __init__(self, knowledge_base, arguments=None, attack_relations=None, complete_arguments=None, complete_attack_relations=None):
     if arguments is None: arguments = set()
     if complete_arguments is None: complete_arguments = set()
     if attack_relations is None: attack_relations = list()
     if complete_attack_relations is None: complete_attack_relations = list()
 
+    self.knowledge_base = knowledge_base
     self.arguments = arguments
     self.complete_arguments = complete_arguments
     self.attack_relations = attack_relations
@@ -107,6 +103,9 @@ class Game:
       self.complete_attack_relations.append(last_attack_relation)
       self.last_argument = last_attack_relation[-1]
     return self
+
+  def is_valid(self, attacker):
+    return (attacker, self.last_argument) in self.knowledge_base.attack_relations
 
   def open_arguments(self):
     return self.arguments
