@@ -35,8 +35,8 @@ class Argument:
     if label not in ("In", "Out", "Undec"): raise
     self.label = label
 
-  def add_label(self, label):
-    self.label = label
+  # def add_label(self, label):
+  #   self.label = label
 
 class ArgumentFramework:
   def __init__(self, arguments, attack_relations):
@@ -45,6 +45,19 @@ class ArgumentFramework:
 
     self.arguments = arguments
     self.attack_relations = attack_relations
+
+  @classmethod
+  def from_file(self, path):
+    file = open(path, "r")
+    argument_line = file.readline()
+    argument_tokens = argument_line.strip().split(" ")
+    tokenized_args = dict((token, Argument("Undec")) for token in argument_tokens)
+    attack_relations = list()
+    for line in file:
+      attacker, target = line.strip().split(" ")
+      attack_relations.append((tokenized_args[attacker], tokenized_args[target]))
+    file.close()
+    return ArgumentFramework(tokenized_args.values(), attack_relations)
 
   def find_moves(self, arguments):
     possible_arguments = list()
@@ -78,14 +91,14 @@ class Game:
     for attacker, target in self.attack_relations:
       if target is argument:
         raise InvalidMoveError("An attacker of this argument is not out.")
-    argument.add_label("In")
+    # argument.add_label("In")
     return self.remove(argument)
 
   def retract(self, argument):
     for attacker, target in self.complete_attack_relations:
       if target is argument:
         if attacker.label == "In":
-          argument.add_label("Out")
+          # argument.add_label("Out")
           return self.remove(argument)
     raise InvalidMoveError("There is no attacker of this argument that is in.")
 

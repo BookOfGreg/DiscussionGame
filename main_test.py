@@ -1,6 +1,15 @@
 from main import *
 import unittest
 
+class TestKnowledgeBaseLoaders(unittest.TestCase):
+  def test_abstract_loader(self):
+    first_argument = Argument("Out")
+    second_argument = Argument("In")
+    example_kb = ArgumentFramework(set([first_argument, second_argument]),
+                                 list([(second_argument, first_argument)]))
+
+    self.assertEqual(example_kb, ArgumentFramework.from_file("./example_kb.txt"))
+
 class TestPlayers(unittest.TestCase):
   def test_players_know_validity_of_move(self): # Could improve
     first_argument = Argument("Out")
