@@ -8,9 +8,6 @@ class Proponent:
       return self.game.add(argument)
     raise InvalidMoveError("My Argument is BullShit (technical definition)")
 
-  # def possible_moves(self): # Extract to superclass
-  #   return self.game.find_moves(self.game.open_arguments())
-
   def is_valid_move(self, argument):
     if self.game.last_argument is None: return True
     return self.game.is_valid(argument)
@@ -29,9 +26,6 @@ class Opponent:
 
   def retract(self, argument):
     return self.game.retract(argument)
-
-  # def possible_moves(self):
-  #   return self.game.find_moves(self.game.open_arguments())
 
   def is_valid_move(self, argument):
     return self.game.is_valid(argument)

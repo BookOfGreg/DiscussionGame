@@ -2,26 +2,6 @@ from main import *
 import unittest
 
 class TestPlayers(unittest.TestCase):
-  # def test_players_know_possible_moves(self): # Could improve
-  #   first_argument = Argument("In")
-  #   second_argument = Argument("Out")
-  #   third_argument = Argument("In")
-  #   fourth_argument = Argument("In")
-  #   knowledge = ArgumentFramework(set([first_argument, second_argument,
-  #                                      third_argument, fourth_argument]),
-  #                                list([(second_argument, first_argument),
-  #                                      (third_argument, second_argument),
-  #                                      (fourth_argument, second_argument)]))
-  #   game = Game(knowledge)
-  #   proponent = Proponent(game)
-  #   opponent = Opponent(game)
-  #   proponent.has_to_be(first_argument)
-  #   opponent.could_be(second_argument)
-  #   self.assertEqual(proponent.possible_moves(),
-  #                     set([third_argument, fourth_argument]))
-  #   self.assertEqual(opponent.possible_moves(),
-  #                     set([third_argument, fourth_argument]))
-
   def test_players_know_validity_of_move(self): # Could improve
     first_argument = Argument("Out")
     second_argument = Argument("In")
