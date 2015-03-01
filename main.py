@@ -1,3 +1,19 @@
+import sqlite3
+import os
+
+try:
+  os.remove("./db.sqlite3")
+except OSError:
+  pass
+conn = sqlite3.connect("./db.sqlite3")
+c = conn.cursor()
+c.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name text, label text);")
+c.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY, attacker_id INTEGER, target_id INTEGER,
+  FOREIGN KEY(attacker_id) REFERENCES arguments(id),
+  FOREIGN KEY(target_id) REFERENCES arguments(id),
+  UNIQUE(attacker_id, target_id) ON CONFLICT IGNORE);""")
+# c.execute("INSERT INTO arguments (name, label) VALUES('dick', 'butt')")
+
 class Proponent:
   def __init__(self, game):
     self.game = game
@@ -40,33 +56,40 @@ class Argument:
   #   self.label = label
 
 class ArgumentFramework:
-  def __init__(self, arguments, attack_relations):
-    if arguments is None: arguments = set()
-    if attack_relations is None: attack_relations = list()
+  # def __init__(self, arguments, attack_relations):
+    # if arguments is None: arguments = set()
+    # if attack_relations is None: attack_relations = list()
 
-    self.arguments = arguments
-    self.attack_relations = attack_relations
+    # self.arguments = arguments
+    # self.attack_relations = attack_relations
 
   @classmethod
   def from_file(self, path):
     file = open(path, "r")
     argument_line = file.readline()
-    argument_tokens = argument_line.strip().split(" ")
-    tokenized_args = dict((token, Argument("Undec", token)) for token in argument_tokens)
-    attack_relations = list()
+    # argument_tokens = argument_line.strip().split(" ")
+    for arg in argument_line.strip().split(" "):
+      c.execute("INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
+    # tokenized_args = dict((token, Argument("Undec", token)) for token in argument_tokens)
+    # attack_relations = list()
     for line in file:
       attacker, target = line.strip().split(" ")
-      attack_relations.append((tokenized_args[attacker], tokenized_args[target]))
+      c.execute("""INSERT INTO attacks (attacker_id, target_id)
+        WITH attacker AS (SELECT id FROM arguments WHERE name=?),
+        target AS (SELECT id FROM arguments WHERE name=?)
+        SELECT * from attacker, target""", (attacker, target))
+      # attack_relations.append((tokenized_args[attacker], tokenized_args[target]))
     file.close()
-    return ArgumentFramework(tokenized_args.values(), attack_relations)
+    conn.commit()
+    # return ArgumentFramework(tokenized_args.values(), attack_relations)
 
-  def find_moves(self, arguments):
-    possible_arguments = list()
-    # This will be slow...
-    for attacker, target in self.attack_relations:
-      if target in arguments and attacker not in arguments:
-        possible_arguments.append(attacker)
-    return set(possible_arguments)
+  # def find_moves(self, arguments):
+  #   possible_arguments = list()
+  #   # This will be slow...
+  #   for attacker, target in self.attack_relations:
+  #     if target in arguments and attacker not in arguments:
+  #       possible_arguments.append(attacker)
+  #   return set(possible_arguments)
 
 class Game:
   def __init__(self, knowledge_base, arguments=None, attack_relations=None, complete_arguments=None, complete_attack_relations=None):
