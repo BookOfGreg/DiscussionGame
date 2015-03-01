@@ -5,10 +5,13 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
   def test_abstract_loader(self):
     first_argument = Argument("Out")
     second_argument = Argument("In")
-    example_kb = ArgumentFramework(set([first_argument, second_argument]),
-                                 list([(second_argument, first_argument)]))
-
-    self.assertEqual(example_kb, ArgumentFramework.from_file("./example_kb.txt"))
+    # example_kb = ArgumentFramework(set([first_argument, second_argument]),
+    #                              list([(second_argument, first_argument)]))
+    kb = ArgumentFramework.from_file("./example_kb_1.txt")
+    self.assertEqual(len(kb.attack_relations), 1)
+    kb = ArgumentFramework.from_file("./example_kb_2.txt")
+    self.assertEqual(len(kb.attack_relations), 3)
+    # There exists an argument that has 2 attackers assertion.
 
 class TestPlayers(unittest.TestCase):
   def test_players_know_validity_of_move(self): # Could improve
