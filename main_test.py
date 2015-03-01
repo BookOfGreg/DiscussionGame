@@ -2,7 +2,7 @@ from main import *
 import unittest
 
 class TestPlayers(unittest.TestCase):
-  def test_players_know_possible_moves(self):
+  def test_players_know_possible_moves(self): # Could improve
     first_argument = Argument("In")
     second_argument = Argument("Out")
     third_argument = Argument("In")
@@ -22,8 +22,7 @@ class TestPlayers(unittest.TestCase):
     self.assertEqual(opponent.possible_moves(),
                       set([third_argument, fourth_argument]))
 
-
-  def test_players_know_validity_of_move(self):
+  def test_players_know_validity_of_move(self): # Could improve
     first_argument = Argument("Out")
     second_argument = Argument("In")
     knowledge = ArgumentFramework(set([first_argument, second_argument]),
@@ -60,15 +59,11 @@ class TestRules(unittest.TestCase):
   def test_could_be_attacks_last_has_to_be(self):
     self.opponent.could_be(self.fourth_argument)
     self.assertEqual(self.game.attack_relations[-1][-1], self.third_argument)
-    # As long as the could_be signature does not change, there is no way to
-    # attack anyone other than the last argument.
 
   def test_has_to_be_attacks_last_could_be(self):
     self.opponent.could_be(self.fourth_argument)
     self.proponent.has_to_be(self.fifth_argument)
     self.assertEqual(self.game.attack_relations[-1][-1], self.fourth_argument)
-    # As long as the has_to_be signature does not change, there is no way to
-    # attack anyone other than the last argument.
 
   def setUp(self):
     self.game = Game()

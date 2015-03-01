@@ -66,14 +66,14 @@ class ArgumentFramework:
     return attack_relation in self.attack_relations
 
 class Game:
-  def __init__(self, arguments=None, attack_relations=None, labeled_arguments=None, complete_attack_relations=None):
+  def __init__(self, arguments=None, attack_relations=None, complete_arguments=None, complete_attack_relations=None):
     if arguments is None: arguments = set()
-    if labeled_arguments is None: labeled_arguments = set()
+    if complete_arguments is None: complete_arguments = set()
     if attack_relations is None: attack_relations = list()
     if complete_attack_relations is None: complete_attack_relations = list()
 
     self.arguments = arguments
-    self.labeled_arguments = labeled_arguments
+    self.complete_arguments = complete_arguments
     self.attack_relations = attack_relations
     self.complete_attack_relations = complete_attack_relations
     self.last_argument = None
@@ -101,7 +101,7 @@ class Game:
 
   def remove(self, argument):
     self.arguments = self.arguments.difference({argument})
-    self.labeled_arguments.add(argument)
+    self.complete_arguments.add(argument)
     if len(self.attack_relations) > 0:
       last_attack_relation = self.attack_relations.pop(-1)
       self.complete_attack_relations.append(last_attack_relation)
