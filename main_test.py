@@ -58,26 +58,39 @@ class TestRules(unittest.TestCase):
       self.opponent.retract(self.second_argument)
 
   def test_could_be_attacks_last_has_to_be(self):
-    self.assertTrue(self.opponent.could_be(Argument()))
+    self.opponent.could_be(self.fourth_argument)
+    self.assertEqual(self.game.attack_relations[-1][-1], self.third_argument)
     # As long as the could_be signature does not change, there is no way to
     # attack anyone other than the last argument.
 
-  def test_could_be_attacks_last_has_to_be(self):
-    self.assertTrue(self.proponent.has_to_be(Argument()))
+  def test_has_to_be_attacks_last_could_be(self):
+    self.opponent.could_be(self.fourth_argument)
+    self.proponent.has_to_be(self.fifth_argument)
+    self.assertEqual(self.game.attack_relations[-1][-1], self.fourth_argument)
     # As long as the has_to_be signature does not change, there is no way to
     # attack anyone other than the last argument.
 
   def setUp(self):
-    game = Game()
-    self.proponent = Proponent(game)
-    self.opponent = Opponent(game)
+    self.game = Game()
     self.first_argument = Argument()
     self.second_argument = Argument()
     self.third_argument = Argument()
+    self.fourth_argument = Argument()
+    self.fifth_argument = Argument()
+    argument_framework = ArgumentFramework(set([self.first_argument,
+                                                self.second_argument,
+                                                self.third_argument,
+                                                self.fourth_argument,
+                                                self.fifth_argument]),
+                                           list([(self.second_argument, self.first_argument),
+                                                 (self.third_argument, self.second_argument),
+                                                 (self.fourth_argument, self.third_argument),
+                                                 (self.fifth_argument, self.fourth_argument)]))
+    self.proponent = Proponent(self.game, argument_framework)
+    self.opponent = Opponent(self.game, argument_framework)
     self.proponent.has_to_be(self.first_argument)
     self.opponent.could_be(self.second_argument)
     self.proponent.has_to_be(self.third_argument)
-
 
 class TestArgument(unittest.TestCase):
   def test_argument_starts_undecided(self):
@@ -92,15 +105,15 @@ class TestArgument(unittest.TestCase):
 
 class TestMoves(unittest.TestCase):
   def test_has_to_be(self):
-    expected_game = Game(set([self.argument]))
+    expected_game = Game(set([self.first_argument]))
 
     self.assertEqual(self.game.arguments, expected_game.arguments)
 
   def test_could_be(self):
     new_game = self.opponent.could_be(self.second_argument)
 
-    expected_game = Game(set([self.argument, self.second_argument]),
-                         list([(self.second_argument, self.argument)]))
+    expected_game = Game(set([self.first_argument, self.second_argument]),
+                         list([(self.second_argument, self.first_argument)]))
 
     self.assertEqual(new_game.arguments, expected_game.arguments)
     self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
@@ -110,8 +123,8 @@ class TestMoves(unittest.TestCase):
     self.proponent.has_to_be(self.third_argument)
     new_game = self.opponent.concede(self.third_argument)
 
-    expected_game = Game(set([self.argument, self.second_argument]),
-                         list([(self.second_argument, self.argument)]))
+    expected_game = Game(set([self.first_argument, self.second_argument]),
+                         list([(self.second_argument, self.first_argument)]))
 
     self.assertEqual(new_game.arguments, expected_game.arguments)
     self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
@@ -122,7 +135,7 @@ class TestMoves(unittest.TestCase):
     self.opponent.concede(self.third_argument)
     new_game = self.opponent.retract(self.second_argument)
 
-    expected_game = Game(set([self.argument]),
+    expected_game = Game(set([self.first_argument]),
                          list())
 
     self.assertEqual(new_game.arguments, expected_game.arguments)
@@ -130,9 +143,14 @@ class TestMoves(unittest.TestCase):
 
   def setUp(self):
     self.game = Game()
-    self.proponent = Proponent(self.game)
-    self.opponent = Opponent(self.game)
-    self.argument = Argument()
+    self.first_argument = Argument()
     self.second_argument = Argument()
     self.third_argument = Argument()
-    self.proponent.has_to_be(self.argument)
+    argument_framework = ArgumentFramework(set([self.first_argument,
+                                                self.second_argument,
+                                                self.third_argument]),
+                                           list([(self.second_argument, self.first_argument),
+                                                 (self.third_argument, self.second_argument)]))
+    self.proponent = Proponent(self.game, argument_framework)
+    self.opponent = Opponent(self.game, argument_framework)
+    self.proponent.has_to_be(self.first_argument)

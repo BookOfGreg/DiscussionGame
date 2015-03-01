@@ -1,8 +1,7 @@
 class Proponent:
-  def __init__(self, game, reasoning=None):
-    # if reasoning is None: reasoning = # Default knowledge source or any argument allowed
+  def __init__(self, game, knowledge_base):
     self.game = game
-    self.reasoning = reasoning
+    self.knowledge_base = knowledge_base
     # load from a file or delegate to another class in knowledge/reasoning/validator.
 
   def has_to_be(self, argument):
@@ -11,17 +10,16 @@ class Proponent:
     raise InvalidMoveError("My Argument is BullShit (technical definition)")
 
   def possible_moves(self): # Extract to superclass
-    return self.reasoning.find_moves(self.game.open_arguments())
+    return self.knowledge_base.find_moves(self.game.open_arguments())
 
   def is_valid_move(self, argument):
-    if self.reasoning is None: return True
     if self.game.last_argument is None: return True
-    return self.reasoning.is_valid((argument, self.game.last_argument))
+    return self.knowledge_base.is_valid((argument, self.game.last_argument))
 
 class Opponent:
-  def __init__(self, game, reasoning=None):
+  def __init__(self, game, knowledge_base):
     self.game = game
-    self.reasoning = reasoning
+    self.knowledge_base = knowledge_base
 
   def could_be(self, argument):
     if self.is_valid_move(argument): #strict mode?
@@ -35,11 +33,10 @@ class Opponent:
     return self.game.retract(argument)
 
   def possible_moves(self):
-    return self.reasoning.find_moves(self.game.open_arguments())
+    return self.knowledge_base.find_moves(self.game.open_arguments())
 
   def is_valid_move(self, argument):
-    if self.reasoning is None: return True
-    return self.reasoning.is_valid((argument, self.game.last_argument))
+    return self.knowledge_base.is_valid((argument, self.game.last_argument))
 
 class Argument:
   def __init__(self, label=None):
