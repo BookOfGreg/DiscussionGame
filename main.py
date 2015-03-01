@@ -60,19 +60,13 @@ class ArgumentFramework:
   def find_moves(self, arguments):
     possible_arguments = list()
     # This will be slow...
-    for relation in self.attack_relations:
-      if self._target(relation) in arguments and self._attacker(relation) not in arguments:
-        possible_arguments.append(self._attacker(relation))
+    for attacker, target in self.attack_relations:
+      if target in arguments and attacker not in arguments:
+        possible_arguments.append(attacker)
     return set(possible_arguments)
 
   def is_valid(self, attack_relation):
     return attack_relation in self.attack_relations
-
-  def _attacker(self, relation):
-    return relation[0]
-
-  def _target(self, relation):
-    return relation[1]
 
 class Game:
   def __init__(self, arguments=None, attack_relations=None, labeled_arguments=None, complete_attack_relations=None):
@@ -94,16 +88,16 @@ class Game:
     return self
 
   def concede(self, argument):
-    for relation in self.attack_relations:
-      if self._target(relation) is argument:
+    for attacker, target in self.attack_relations:
+      if target is argument:
         raise InvalidMoveError("An attacker of this argument is not out.")
     argument.add_label("In")
     return self.remove(argument)
 
   def retract(self, argument):
-    for relation in self.complete_attack_relations:
-      if self._target(relation) is argument:
-        if self._attacker(relation).label == "In":
+    for attacker, target in self.complete_attack_relations:
+      if target is argument:
+        if attacker.label == "In":
           argument.add_label("Out")
           return self.remove(argument)
     raise InvalidMoveError("There is no attacker of this argument that is in.")
@@ -116,12 +110,6 @@ class Game:
       self.complete_attack_relations.append(last_attack_relation)
       self.last_argument = last_attack_relation[-1]
     return self
-
-  def _attacker(self, relation):
-    return relation[0]
-
-  def _target(self, relation):
-    return relation[1]
 
   def open_arguments(self):
     return self.arguments
