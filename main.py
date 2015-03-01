@@ -31,9 +31,10 @@ class Opponent:
     return self.game.is_valid(argument)
 
 class Argument:
-  def __init__(self, label):
+  def __init__(self, label, name):
     if label not in ("In", "Out", "Undec"): raise
     self.label = label
+    self.name = name
 
   # def add_label(self, label):
   #   self.label = label
@@ -51,7 +52,7 @@ class ArgumentFramework:
     file = open(path, "r")
     argument_line = file.readline()
     argument_tokens = argument_line.strip().split(" ")
-    tokenized_args = dict((token, Argument("Undec")) for token in argument_tokens)
+    tokenized_args = dict((token, Argument("Undec", token)) for token in argument_tokens)
     attack_relations = list()
     for line in file:
       attacker, target = line.strip().split(" ")

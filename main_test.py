@@ -3,8 +3,8 @@ import unittest
 
 class TestKnowledgeBaseLoaders(unittest.TestCase):
   def test_abstract_loader(self):
-    first_argument = Argument("Out")
-    second_argument = Argument("In")
+    first_argument = Argument("Out", "a")
+    second_argument = Argument("In", "b")
     # example_kb = ArgumentFramework(set([first_argument, second_argument]),
     #                              list([(second_argument, first_argument)]))
     kb = ArgumentFramework.from_file("./example_kb_1.txt")
@@ -15,8 +15,8 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
 
 class TestPlayers(unittest.TestCase):
   def test_players_know_validity_of_move(self): # Could improve
-    first_argument = Argument("Out")
-    second_argument = Argument("In")
+    first_argument = Argument("Out", "a")
+    second_argument = Argument("In", "b")
     knowledge = ArgumentFramework(set([first_argument, second_argument]),
                                  list([(second_argument, first_argument)]))
     game = Game(knowledge)
@@ -58,11 +58,11 @@ class TestRules(unittest.TestCase):
     self.assertEqual(self.game.attack_relations[-1][-1], self.fourth_argument)
 
   def setUp(self):
-    self.first_argument = Argument("In")
-    self.second_argument = Argument("Out")
-    self.third_argument = Argument("In")
-    self.fourth_argument = Argument("Out")
-    self.fifth_argument = Argument("In")
+    self.first_argument = Argument("In", "a")
+    self.second_argument = Argument("Out", "b")
+    self.third_argument = Argument("In", "c")
+    self.fourth_argument = Argument("Out", "d")
+    self.fifth_argument = Argument("In", "e")
     argument_framework = ArgumentFramework(set([self.first_argument,
                                                 self.second_argument,
                                                 self.third_argument,
@@ -80,14 +80,14 @@ class TestRules(unittest.TestCase):
     self.proponent.has_to_be(self.third_argument)
 
 class TestArgument(unittest.TestCase):
-  def test_argument_starts_with_label(self):
-    self.assertTrue(Argument("In"))
-    self.assertTrue(Argument("Out"))
+  def test_argument_starts_with_name_and_label(self):
+    self.assertTrue(Argument("In", "a"))
+    self.assertTrue(Argument("Out", "b"))
 
   def test_arguments_can_be_in_or_out(self):
-    argument = Argument("In")
+    argument = Argument("In", "a")
     self.assertEqual(argument.label, "In")
-    argument = Argument("Out")
+    argument = Argument("Out", "b")
     self.assertEqual(argument.label, "Out")
 
 class TestMoves(unittest.TestCase):
@@ -133,9 +133,9 @@ class TestMoves(unittest.TestCase):
     self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
 
   def setUp(self):
-    self.first_argument = Argument("In")
-    self.second_argument = Argument("Out")
-    self.third_argument = Argument("In")
+    self.first_argument = Argument("In", "a")
+    self.second_argument = Argument("Out", "b")
+    self.third_argument = Argument("In", "c")
     self.argument_framework = ArgumentFramework(set([self.first_argument,
                                                 self.second_argument,
                                                 self.third_argument]),
