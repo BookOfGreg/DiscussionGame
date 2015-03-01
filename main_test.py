@@ -3,10 +3,10 @@ import unittest
 
 class TestPlayers(unittest.TestCase):
   def test_players_know_possible_moves(self):
-    first_argument = Argument()
-    second_argument = Argument()
-    third_argument = Argument()
-    fourth_argument = Argument()
+    first_argument = Argument("In")
+    second_argument = Argument("Out")
+    third_argument = Argument("In")
+    fourth_argument = Argument("In")
     knowledge = ArgumentFramework(set([first_argument, second_argument,
                                        third_argument, fourth_argument]),
                                  list([(second_argument, first_argument),
@@ -24,8 +24,8 @@ class TestPlayers(unittest.TestCase):
 
 
   def test_players_know_validity_of_move(self):
-    first_argument = Argument()
-    second_argument = Argument()
+    first_argument = Argument("Out")
+    second_argument = Argument("In")
     knowledge = ArgumentFramework(set([first_argument, second_argument]),
                                  list([(second_argument, first_argument)]))
     game = Game()
@@ -72,11 +72,11 @@ class TestRules(unittest.TestCase):
 
   def setUp(self):
     self.game = Game()
-    self.first_argument = Argument()
-    self.second_argument = Argument()
-    self.third_argument = Argument()
-    self.fourth_argument = Argument()
-    self.fifth_argument = Argument()
+    self.first_argument = Argument("In")
+    self.second_argument = Argument("Out")
+    self.third_argument = Argument("In")
+    self.fourth_argument = Argument("Out")
+    self.fifth_argument = Argument("In")
     argument_framework = ArgumentFramework(set([self.first_argument,
                                                 self.second_argument,
                                                 self.third_argument,
@@ -93,9 +93,9 @@ class TestRules(unittest.TestCase):
     self.proponent.has_to_be(self.third_argument)
 
 class TestArgument(unittest.TestCase):
-  def test_argument_starts_undecided(self):
-    argument = Argument()
-    self.assertEqual(argument.label, "Undec")
+  def test_argument_starts_with_label(self):
+    self.assertTrue(Argument("In"))
+    self.assertTrue(Argument("Out"))
 
   def test_arguments_can_be_in_or_out(self):
     argument = Argument("In")
@@ -143,9 +143,9 @@ class TestMoves(unittest.TestCase):
 
   def setUp(self):
     self.game = Game()
-    self.first_argument = Argument()
-    self.second_argument = Argument()
-    self.third_argument = Argument()
+    self.first_argument = Argument("In")
+    self.second_argument = Argument("Out")
+    self.third_argument = Argument("In")
     argument_framework = ArgumentFramework(set([self.first_argument,
                                                 self.second_argument,
                                                 self.third_argument]),

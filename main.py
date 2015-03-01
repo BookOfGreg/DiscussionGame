@@ -39,8 +39,8 @@ class Opponent:
     return self.knowledge_base.is_valid((argument, self.game.last_argument))
 
 class Argument:
-  def __init__(self, label=None):
-    if label is None: label = "Undec"
+  def __init__(self, label):
+    if label not in ("In", "Out", "Undec"): raise
     self.label = label
 
   def add_label(self, label):
