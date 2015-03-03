@@ -14,7 +14,7 @@ def create_db():
   conn = sqlite3.connect(DB_PATH)
   conn.isolation_level = None
   cursor = conn.cursor()
-  cursor.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name TEXT, label TEXT, step INTEGER);")
+  cursor.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name TEXT, label TEXT, step INTEGER default 9223372036854775807);")
   cursor.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY, attacker_id INTEGER, target_id INTEGER,
     FOREIGN KEY(attacker_id) REFERENCES arguments(id),
     FOREIGN KEY(target_id) REFERENCES arguments(id),
@@ -69,6 +69,12 @@ class Opponent:
   def is_valid_move(self, argument):
     return self.game.is_valid(argument)
 
+# class Bot:
+#   def next_move(self, game):
+#     args = game.last_argument.minus()
+
+#     return list(args).sort(key=lambda x: x.step, reverse=True)[0]
+
 class Argument:
   def __init__(self, name, label):#, id=None
     self.name = name
@@ -78,9 +84,9 @@ class Argument:
     return set(self._attackers(cursor.execute("""SELECT attacks.id, attacker_id, target_id FROM attacks
       JOIN arguments ON target_id=arguments.id AND arguments.name=?""", self.name).fetchall()))
 
-  def _attackers(self, relation):
+  def _attackers(self, relations):
     args = list()
-    for attack in relation:
+    for attack in relations:
       arg_tuple = cursor.execute("SELECT * FROM arguments WHERE id=?", str(attack[1])).fetchone()
       arg = Argument(arg_tuple[1], arg_tuple[2])
       args.append(arg)
@@ -103,6 +109,9 @@ class ArgumentFramework:
     self.arguments = arguments
     self.attack_relations = attack_relations
 
+  def get_attack_relations(self):
+    return self.attack_relations
+
 class DBArgumentFramework:
   def __init__(self, cursor):
     self.cursor = cursor
@@ -113,8 +122,16 @@ class DBArgumentFramework:
       arguments.append(Argument(arg[1], arg[2]))
     return arguments
 
-  def attack_relations(self):
-    return self.cursor.execute("SELECT * FROM attacks").fetchall()
+  def get_attack_relations(self):
+    args = list()
+    relations = self.cursor.execute("SELECT * FROM attacks").fetchall()
+    for attack in relations:
+      attacker = cursor.execute("SELECT * FROM arguments WHERE id=?", str(attack[1])).fetchone()
+      target = cursor.execute("SELECT * FROM arguments WHERE id=?", str(attack[2])).fetchone()
+      attack_arg = Argument(attacker[1], attacker[2])
+      target_arg = Argument(target[1], target[2])
+      args.append((attack_arg, target_arg))
+    return args
 
 class Game:
   def __init__(self, knowledge_base, arguments=None, attack_relations=None, complete_arguments=None, complete_attack_relations=None):
@@ -185,7 +202,7 @@ class Game:
     return self
 
   def is_valid(self, attacker):
-    return (attacker, self.last_argument) in self.knowledge_base.attack_relations
+    return (attacker, self.last_argument) in self.knowledge_base.get_attack_relations()
 
   def open_arguments(self):
     return self.arguments

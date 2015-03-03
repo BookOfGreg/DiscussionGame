@@ -6,7 +6,7 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
     first_argument = Argument("a", "Out")
     second_argument = Argument("b", "In")
     game = Game.from_file("./example_kb_2.txt")
-    self.assertEqual(len(game.knowledge_base.attack_relations()), 3)
+    self.assertEqual(len(game.knowledge_base.get_attack_relations()), 3)
     # There exists an argument that has 2 attackers assertion.
 
 class TestPlayers(unittest.TestCase):
@@ -20,6 +20,19 @@ class TestPlayers(unittest.TestCase):
     opponent = Opponent(game)
     proponent.has_to_be(first_argument)
     self.assertTrue(opponent.is_valid_move(second_argument))
+
+# class TestBot(unittest.TestCase):
+#   def test_knows_which_argument_to_do_next(self):
+#     first_argument = Argument("a", "Out")
+#     second_argument = Argument("b", "In")
+#     knowledge = ArgumentFramework(set([first_argument, second_argument]),
+#                                  list([(second_argument, first_argument)]))
+#     game = Game(knowledge)
+#     proponent = Proponent(game)
+#     proponent.has_to_be(first_argument)
+#     bot = Bot(game)
+#     bot.next_move()
+#     self.assertEqual(game.last_argument, second_argument)
 
 class TestRules(unittest.TestCase):
   def test_concede_happens_when_there_are_no_attackers(self):
