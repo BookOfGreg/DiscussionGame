@@ -5,10 +5,7 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
   def test_abstract_loader(self):
     first_argument = Argument("Out", "a")
     second_argument = Argument("In", "b")
-    # example_kb = ArgumentFramework(set([first_argument, second_argument]),
-    #                              list([(second_argument, first_argument)]))
     game = Game.from_file("./example_kb_1.txt")
-    # print(game.knowledge_base.attack_relations().__class__.__name__)
     self.assertEqual(len(game.knowledge_base.attack_relations()), 1)
     game = Game.from_file("./example_kb_2.txt")
     self.assertEqual(len(game.knowledge_base.attack_relations()), 3)
