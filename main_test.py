@@ -5,8 +5,6 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
   def test_abstract_loader(self):
     first_argument = Argument("a", "Out")
     second_argument = Argument("b", "In")
-    # game = Game.from_file("./example_kb_1.txt")
-    # self.assertEqual(len(game.knowledge_base.attack_relations()), 1)
     game = Game.from_file("./example_kb_2.txt")
     self.assertEqual(len(game.knowledge_base.attack_relations()), 3)
     # There exists an argument that has 2 attackers assertion.
