@@ -225,7 +225,6 @@ class Labelling:
     return cls(af, set(), set(), set(af.arguments()))
 
   def isLegallyOUT(self, arg):
-    print("myattackers", arg.minus(), "\nlegalinargs", self.IN)
     return arg.minus() & self.IN
 
   def isLegallyIN(self, arg):
@@ -236,11 +235,9 @@ class Labelling:
     while True:
       counter += 1
       legally_IN = set([a for a in self.UNDEC if self.isLegallyIN(a)])
-      print("legally_IN", legally_IN)
       for arg in legally_IN:
         cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("In", counter, arg.name))
       legally_OUT = set([a for a in self.UNDEC if self.isLegallyOUT(a)])
-      print("legally_OUT", legally_OUT)
       for arg in legally_OUT:
         cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("Out", counter, arg.name))
       if not legally_IN and not legally_OUT:
