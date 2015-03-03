@@ -5,7 +5,7 @@ try:
   os.remove("./db.sqlite3")
 except OSError:
   pass
-# c.execute("INSERT INTO arguments (name, label) VALUES(?, ?)", name, label)
+
 DB_PATH="./db.sqlite3"
 
 def create_db():
