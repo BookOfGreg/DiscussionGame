@@ -7,10 +7,11 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
     second_argument = Argument("In", "b")
     # example_kb = ArgumentFramework(set([first_argument, second_argument]),
     #                              list([(second_argument, first_argument)]))
-    kb = ArgumentFramework.from_file("./example_kb_1.txt")
-    self.assertEqual(len(kb.attack_relations), 1)
-    kb = ArgumentFramework.from_file("./example_kb_2.txt")
-    self.assertEqual(len(kb.attack_relations), 3)
+    game = Game.from_file("./example_kb_1.txt")
+    # print(game.knowledge_base.attack_relations().__class__.__name__)
+    self.assertEqual(len(game.knowledge_base.attack_relations()), 1)
+    game = Game.from_file("./example_kb_2.txt")
+    self.assertEqual(len(game.knowledge_base.attack_relations()), 3)
     # There exists an argument that has 2 attackers assertion.
 
 class TestPlayers(unittest.TestCase):

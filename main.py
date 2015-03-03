@@ -5,19 +5,41 @@ try:
   os.remove("./db.sqlite3")
 except OSError:
   pass
-conn = sqlite3.connect("./db.sqlite3")
-c = conn.cursor()
-c.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name text, label text);")
-c.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY, attacker_id INTEGER, target_id INTEGER,
-  FOREIGN KEY(attacker_id) REFERENCES arguments(id),
-  FOREIGN KEY(target_id) REFERENCES arguments(id),
-  UNIQUE(attacker_id, target_id) ON CONFLICT IGNORE);""")
-# c.execute("INSERT INTO arguments (name, label) VALUES('dick', 'butt')")
+# c.execute("INSERT INTO arguments (name, label) VALUES(?, ?)", name, label)
+DB_PATH="./db.sqlite3"
+
+def create_db():
+  global conn
+  global cursor
+  conn = sqlite3.connect(DB_PATH)
+  cursor = conn.cursor()
+  cursor.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name text, label text);")
+  cursor.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY, attacker_id INTEGER, target_id INTEGER,
+    FOREIGN KEY(attacker_id) REFERENCES arguments(id),
+    FOREIGN KEY(target_id) REFERENCES arguments(id),
+    UNIQUE(attacker_id, target_id) ON CONFLICT IGNORE);""")
+  return conn
+
+def delete_db():
+  global conn
+  try:
+    conn.close()
+    os.remove(DB_PATH)
+  except OSError:
+    pass
+
+def reset_db():
+  global conn
+  global cursor
+  delete_db()
+  conn = create_db()
+  cursor = conn.cursor()
+
+create_db()
 
 class Proponent:
   def __init__(self, game):
     self.game = game
-    # load from a file or delegate to another class in knowledge/reasoning/validator.
 
   def has_to_be(self, argument):
     if self.is_valid_move(argument):
@@ -48,48 +70,23 @@ class Opponent:
 
 class Argument:
   def __init__(self, label, name):
-    if label not in ("In", "Out", "Undec"): raise
     self.label = label
     self.name = name
 
-  # def add_label(self, label):
-  #   self.label = label
-
 class ArgumentFramework:
-  # def __init__(self, arguments, attack_relations):
-    # if arguments is None: arguments = set()
-    # if attack_relations is None: attack_relations = list()
+  def __init__(self, arguments, attack_relations):
+    if arguments is None: arguments = set()
+    if attack_relations is None: attack_relations = list()
 
-    # self.arguments = arguments
-    # self.attack_relations = attack_relations
+    self.arguments = arguments
+    self.attack_relations = attack_relations
 
-  @classmethod
-  def from_file(self, path):
-    file = open(path, "r")
-    argument_line = file.readline()
-    # argument_tokens = argument_line.strip().split(" ")
-    for arg in argument_line.strip().split(" "):
-      c.execute("INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
-    # tokenized_args = dict((token, Argument("Undec", token)) for token in argument_tokens)
-    # attack_relations = list()
-    for line in file:
-      attacker, target = line.strip().split(" ")
-      c.execute("""INSERT INTO attacks (attacker_id, target_id)
-        WITH attacker AS (SELECT id FROM arguments WHERE name=?),
-        target AS (SELECT id FROM arguments WHERE name=?)
-        SELECT * from attacker, target""", (attacker, target))
-      # attack_relations.append((tokenized_args[attacker], tokenized_args[target]))
-    file.close()
-    conn.commit()
-    # return ArgumentFramework(tokenized_args.values(), attack_relations)
+class DBArgumentFramework:
+  def __init__(self, cursor):
+    self.cursor = cursor
 
-  # def find_moves(self, arguments):
-  #   possible_arguments = list()
-  #   # This will be slow...
-  #   for attacker, target in self.attack_relations:
-  #     if target in arguments and attacker not in arguments:
-  #       possible_arguments.append(attacker)
-  #   return set(possible_arguments)
+  def attack_relations(self):
+    return self.cursor.execute("SELECT * FROM attacks").fetchall()
 
 class Game:
   def __init__(self, knowledge_base, arguments=None, attack_relations=None, complete_arguments=None, complete_attack_relations=None):
@@ -105,6 +102,23 @@ class Game:
     self.complete_attack_relations = complete_attack_relations
     self.last_argument = None
 
+  @classmethod
+  def from_file(self, path):
+    reset_db()
+    file = open(path, "r")
+    argument_line = file.readline()
+    for arg in argument_line.strip().split(" "):
+      cursor.execute("INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
+    for line in file:
+      attacker, target = line.strip().split(" ")
+      cursor.execute("""INSERT INTO attacks (attacker_id, target_id)
+        WITH attacker AS (SELECT id FROM arguments WHERE name=?),
+        target AS (SELECT id FROM arguments WHERE name=?)
+        SELECT * from attacker, target""", (attacker, target))
+    file.close()
+    conn.commit()
+    return Game(DBArgumentFramework(cursor))
+
   def add(self, argument):
     if self.last_argument is not None: self.attack_relations.append((argument, self.last_argument))
     self.arguments.add(argument)
@@ -115,14 +129,12 @@ class Game:
     for attacker, target in self.attack_relations:
       if target is argument:
         raise InvalidMoveError("An attacker of this argument is not out.")
-    # argument.add_label("In")
     return self.remove(argument)
 
   def retract(self, argument):
     for attacker, target in self.complete_attack_relations:
       if target is argument:
         if attacker.label == "In":
-          # argument.add_label("Out")
           return self.remove(argument)
     raise InvalidMoveError("There is no attacker of this argument that is in.")
 
