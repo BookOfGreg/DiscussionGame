@@ -12,8 +12,9 @@ def create_db():
   global conn
   global cursor
   conn = sqlite3.connect(DB_PATH)
+  conn.isolation_level = None
   cursor = conn.cursor()
-  cursor.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name text, label text);")
+  cursor.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name TEXT, label TEXT, step INTEGER);")
   cursor.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY, attacker_id INTEGER, target_id INTEGER,
     FOREIGN KEY(attacker_id) REFERENCES arguments(id),
     FOREIGN KEY(target_id) REFERENCES arguments(id),
@@ -69,9 +70,30 @@ class Opponent:
     return self.game.is_valid(argument)
 
 class Argument:
-  def __init__(self, label, name):
-    self.label = label
+  def __init__(self, name, label):#, id=None
     self.name = name
+    self.label = label
+
+  def minus(self):
+    return set(self._attackers(cursor.execute("""SELECT attacks.id, attacker_id, target_id FROM attacks
+      JOIN arguments ON target_id=arguments.id AND arguments.name=?""", self.name).fetchall()))
+
+  def _attackers(self, relation):
+    args = list()
+    for attack in relation:
+      arg_tuple = cursor.execute("SELECT * FROM arguments WHERE id=?", str(attack[1])).fetchone()
+      arg = Argument(arg_tuple[1], arg_tuple[2])
+      args.append(arg)
+    return args
+
+  def __eq__(self, other):
+    return self.name == other.name
+
+  def __hash__(self):
+    return hash(self.__repr__())
+
+  def __repr__(self):
+    return "Arg(%s)" % (self.name)
 
 class ArgumentFramework:
   def __init__(self, arguments, attack_relations):
@@ -84,6 +106,12 @@ class ArgumentFramework:
 class DBArgumentFramework:
   def __init__(self, cursor):
     self.cursor = cursor
+
+  def arguments(self):
+    arguments = list()
+    for arg in self.cursor.execute("SELECT * FROM arguments").fetchall():
+      arguments.append(Argument(arg[1], arg[2]))
+    return arguments
 
   def attack_relations(self):
     return self.cursor.execute("SELECT * FROM attacks").fetchall()
@@ -117,7 +145,16 @@ class Game:
         SELECT * from attacker, target""", (attacker, target))
     file.close()
     conn.commit()
-    return Game(DBArgumentFramework(cursor))
+    kb = DBArgumentFramework(cursor)
+    Game._set_labels(Labelling.grounded(kb))
+    return Game(kb)
+
+  @classmethod
+  def _set_labels(self, labelling):
+    for arg in labelling.IN:
+      cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("In", labelling.steps[arg], arg.name))
+    for arg in labelling.OUT:
+      cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("Out", labelling.steps[arg], arg.name))
 
   def add(self, argument):
     if self.last_argument is not None: self.attack_relations.append((argument, self.last_argument))
@@ -164,3 +201,96 @@ def main():
   pass
 
 if __name__ == "__main__": main()
+
+
+class Labelling:
+  """Labelling (possibly partial)"""
+  _framework, IN, OUT, UNDEC = None, None, None, None
+
+  def __init__(self, frame, IN = set(), OUT = None, UNDEC = None):
+    self.steps = dict()
+    self._framework = frame
+    self.IN = IN
+    self.OUT = OUT
+    self.UNDEC = UNDEC
+
+  @classmethod
+  def grounded(cls, af):
+    """ Return grounded labeling created from a framework. """
+    return cls.all_UNDEC(af).up_complete_update()
+
+  @classmethod
+  def all_UNDEC(cls, af):
+    """ Return labelling where all arguments are labelled as UNDEC. """
+    return cls(af, set(), set(), set(af.arguments()))
+
+  def isLegallyOUT(self, arg):
+    print("myattackers", arg.minus(), "\nlegalinargs", self.IN)
+    return arg.minus() & self.IN
+
+  def isLegallyIN(self, arg):
+    return arg.minus() <= self.OUT
+
+  def up_complete_update(self):
+    counter = 0
+    while True:
+      counter += 1
+      legally_IN = set([a for a in self.UNDEC if self.isLegallyIN(a)])
+      print("legally_IN", legally_IN)
+      for arg in legally_IN:
+        cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("In", counter, arg.name))
+      legally_OUT = set([a for a in self.UNDEC if self.isLegallyOUT(a)])
+      print("legally_OUT", legally_OUT)
+      for arg in legally_OUT:
+        cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("Out", counter, arg.name))
+      if not legally_IN and not legally_OUT:
+        for a in self.UNDEC:
+          if a not in self.steps:
+            self.steps[a] = counter
+        return self
+      self.IN |= legally_IN
+      self.OUT |= legally_OUT
+      self.UNDEC -= legally_IN
+      self.UNDEC -= legally_OUT
+      # assign the number of the step to the updated arguments
+      this_step = legally_IN | legally_OUT
+      for a in this_step:
+        if a not in self.steps:
+          self.steps[a] = counter
+
+"""
+  author: Greg Myers
+
+  Based on the SAsSy APIC- implementation of the Abstract Argumentation
+  Library by
+  Roman Kutlak <roman@kutlak.net>
+  Mikolaj Podlaszewski <mikolaj.podlaszewski@gmail.com>
+
+  You may use this file under the terms of the BSD license as follows:
+
+  "Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+    * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.
+    * Neither the name of University of Aberdeen nor
+    the names of its contributors may be used to endorse or promote
+    products derived from this software without specific prior written
+    permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+"""
