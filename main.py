@@ -14,7 +14,7 @@ def create_db():
   conn = sqlite3.connect(DB_PATH)
   conn.isolation_level = None
   cursor = conn.cursor()
-  cursor.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name TEXT, label TEXT, step INTEGER default 9223372036854775807);")
+  cursor.execute("CREATE TABLE arguments(id INTEGER PRIMARY KEY, name TEXT, label TEXT, step INTEGER default 9223372036854775806);")
   cursor.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY, attacker_id INTEGER, target_id INTEGER,
     FOREIGN KEY(attacker_id) REFERENCES arguments(id),
     FOREIGN KEY(target_id) REFERENCES arguments(id),
@@ -69,11 +69,14 @@ class Opponent:
   def is_valid_move(self, argument):
     return self.game.is_valid(argument)
 
-# class Bot:
-#   def next_move(self, game):
-#     args = game.last_argument.minus()
+class Bot:
+  def __init__(self, game):
+    self.game = game
 
-#     return list(args).sort(key=lambda x: x.step, reverse=True)[0]
+  def next_move(self):
+    args = self.game.last_argument.minus()
+    if not args: return self.game.last_argument
+    return list(args).sort(key=lambda x: x.step if x.step else 1000, reverse=True)[0]
 
 class Argument:
   def __init__(self, name, label):#, id=None

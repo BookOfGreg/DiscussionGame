@@ -21,18 +21,18 @@ class TestPlayers(unittest.TestCase):
     proponent.has_to_be(first_argument)
     self.assertTrue(opponent.is_valid_move(second_argument))
 
-# class TestBot(unittest.TestCase):
-#   def test_knows_which_argument_to_do_next(self):
-#     first_argument = Argument("a", "Out")
-#     second_argument = Argument("b", "In")
-#     knowledge = ArgumentFramework(set([first_argument, second_argument]),
-#                                  list([(second_argument, first_argument)]))
-#     game = Game(knowledge)
-#     proponent = Proponent(game)
-#     proponent.has_to_be(first_argument)
-#     bot = Bot(game)
-#     bot.next_move()
-#     self.assertEqual(game.last_argument, second_argument)
+class TestBot(unittest.TestCase):
+  def test_bot_knows_which_argument_to_do_next(self):
+    first_argument = Argument("a", "Out")
+    second_argument = Argument("b", "In")
+    knowledge = ArgumentFramework(set([first_argument, second_argument]),
+                                 list([(second_argument, first_argument)]))
+    game = Game(knowledge)
+    proponent = Proponent(game)
+    proponent.has_to_be(first_argument)
+    bot = Bot(game)
+    bot.next_move()
+    self.assertEqual(game.last_argument, second_argument)
 
 class TestRules(unittest.TestCase):
   def test_concede_happens_when_there_are_no_attackers(self):
