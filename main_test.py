@@ -16,94 +16,71 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
 class TestPlayers(unittest.TestCase):
 
     def test_players_know_validity_of_move(self):  # Could improve
-        first_argument = Argument("a", "Out")
-        second_argument = Argument("b", "In")
-        game = Game.from_af(set([first_argument, second_argument]),
-                            list([(second_argument, first_argument)]))
+        game = Game.from_af(set(["a", "b"]),
+                            list([("b", "a")]))
         proponent = Proponent(game)
         opponent = Opponent(game)
-        proponent.has_to_be(first_argument)
-        self.assertTrue(opponent.is_valid_move(second_argument))
+        proponent.has_to_be("a")
+        self.assertTrue(opponent.is_valid_move("b"))
 
 
 class TestBot(unittest.TestCase):
 
     def test_bot_knows_which_argument_to_do_next(self):
-        first_argument = Argument("a", "Out")
-        second_argument = Argument("b", "In")
-        game = Game.from_af(
-            set([first_argument, second_argument]),
-            list([(second_argument, first_argument)]))
+        game = Game.from_af(set(["a", "b"]),
+                            list([("b", "a")]))
         proponent = Proponent(game)
-        proponent.has_to_be(first_argument)
+        proponent.has_to_be("a")
         bot = Bot(game)
         bot.next_move()
-        self.assertEqual(game.last_argument, second_argument)
+        self.assertEqual(game.last_argument, "b")
 
 
 class TestRules(unittest.TestCase):
 
     def test_concede_happens_when_there_are_no_attackers(self):
-        self.assertTrue(self.opponent.concede(self.third_argument))
-        self.assertEqual(self.third_argument.label, "In")
+        self.assertTrue(self.opponent.concede("c"))
 
     def test_concede_happens_when_all_attackers_are_retracted(self):
-        self.assertTrue(self.opponent.concede(self.third_argument))
-        self.assertTrue(self.opponent.retract(self.second_argument))
-        self.assertTrue(self.opponent.concede(self.first_argument))
+        self.assertTrue(self.opponent.concede("c"))
+        self.assertTrue(self.opponent.retract("b"))
+        self.assertTrue(self.opponent.concede("a"))
 
     def test_cannot_concede_when_any_attacker_is_undecided(self):
         with self.assertRaises(InvalidMoveError):
-            self.opponent.concede(self.second_argument)
+            self.opponent.concede("b")
 
     def test_retract_when_attacker_conceded(self):
-        self.opponent.concede(self.third_argument)
-        self.assertTrue(self.opponent.retract(self.second_argument))
+        self.opponent.concede("c")
+        self.assertTrue(self.opponent.retract("b"))
 
     def test_cannot_retract_when_no_attackers_conceded(self):
-
         with self.assertRaises(InvalidMoveError):
-            self.opponent.retract(self.second_argument)
+            self.opponent.retract("b")
 
     def test_could_be_attacks_last_has_to_be(self):
-        self.opponent.could_be(self.fourth_argument)
-        self.assertEqual(self.game.attack_relations[-1][-1],
-                         self.third_argument)
+        self.opponent.could_be("d")
+        self.assertEqual(self.game.attack_relations[-1][-1], "c")
 
     def test_has_to_be_attacks_last_could_be(self):
-        self.opponent.could_be(self.fourth_argument)
-        self.proponent.has_to_be(self.fifth_argument)
-        self.assertEqual(self.game.attack_relations[-1][-1],
-                         self.fourth_argument)
+        self.opponent.could_be("d")
+        self.proponent.has_to_be("e")
+        self.assertEqual(self.game.attack_relations[-1][-1], "d")
 
     def setUp(self):
-        self.first_argument = Argument("a", "In")
-        self.second_argument = Argument("b", "Out")
-        self.third_argument = Argument("c", "In")
-        self.fourth_argument = Argument("d", "Out")
-        self.fifth_argument = Argument("e", "In")
-        self.game = Game.from_af(
-          set([self.first_argument,
-               self.second_argument,
-               self.third_argument,
-               self.fourth_argument,
-               self.fifth_argument]),
-          list([(self.second_argument, self.first_argument),
-                (self.third_argument, self.second_argument),
-                (self.fourth_argument, self.third_argument),
-                (self.fifth_argument, self.fourth_argument)]))
+        self.game = Game.from_af(set(["a", "b", "c", "d", "e"]),
+                                 list([("b", "a"),
+                                       ("c", "b"),
+                                       ("d", "c"),
+                                       ("e", "d")]))
         self.proponent = Proponent(self.game)
         self.opponent = Opponent(self.game)
-        self.proponent.has_to_be(self.first_argument)
-        self.opponent.could_be(self.second_argument)
-        self.proponent.has_to_be(self.third_argument)
+        self.proponent.has_to_be("a")
+        self.opponent.could_be("b")
+        self.proponent.has_to_be("c")
 
 
 class TestArgument(unittest.TestCase):
-
-    def test_argument_starts_with_name_and_label(self):
-        self.assertTrue(Argument("a", "In"))
-        self.assertTrue(Argument("b", "Out"))
 
     def test_arguments_can_be_in_or_out(self):
         argument = Argument("a", "In")
@@ -115,45 +92,43 @@ class TestArgument(unittest.TestCase):
 class TestMoves(unittest.TestCase):
 
     def test_has_to_be(self):
-        expected_game = Game(self.argument_framework,
-                             arguments=set([self.first_argument]))
+        expected_game = Game(self.argument_framework, arguments=set(["a"]))
 
         self.assertEqual(self.game.arguments, expected_game.arguments)
 
     def test_could_be(self):
-        new_game = self.opponent.could_be(self.second_argument)
+        new_game = self.opponent.could_be("b")
 
         expected_game = Game(
           self.argument_framework,
-          arguments=set([self.first_argument, self.second_argument]),
-          attack_relations=list([(self.second_argument, self.first_argument)]))
+          arguments=set(["a", "b"]),
+          attack_relations=list([("b", "a")]))
 
         self.assertEqual(new_game.arguments, expected_game.arguments)
         self.assertEqual(new_game.attack_relations,
                          expected_game.attack_relations)
 
     def test_concede(self):
-        self.opponent.could_be(self.second_argument)
-        self.proponent.has_to_be(self.third_argument)
-        new_game = self.opponent.concede(self.third_argument)
+        self.opponent.could_be("b")
+        self.proponent.has_to_be("c")
+        new_game = self.opponent.concede("c")
 
-        expected_game = Game(
-          self.argument_framework,
-          arguments=set([self.first_argument, self.second_argument]),
-          attack_relations=list([(self.second_argument, self.first_argument)]))
+        expected_game = Game(self.argument_framework,
+                             arguments=set(["a", "b"]),
+                             attack_relations=list([("b", "a")]))
 
         self.assertEqual(new_game.arguments, expected_game.arguments)
         self.assertEqual(new_game.attack_relations,
                          expected_game.attack_relations)
 
     def test_retract(self):
-        self.opponent.could_be(self.second_argument)
-        self.proponent.has_to_be(self.third_argument)
-        self.opponent.concede(self.third_argument)
-        new_game = self.opponent.retract(self.second_argument)
+        self.opponent.could_be("b")
+        self.proponent.has_to_be("c")
+        self.opponent.concede("c")
+        new_game = self.opponent.retract("b")
 
         expected_game = Game(self.argument_framework,
-                             arguments=set([self.first_argument]),
+                             arguments=set(["a"]),
                              attack_relations=list())
 
         self.assertEqual(new_game.arguments, expected_game.arguments)
@@ -161,16 +136,10 @@ class TestMoves(unittest.TestCase):
                          expected_game.attack_relations)
 
     def setUp(self):
-        self.first_argument = Argument("a", "In")
-        self.second_argument = Argument("b", "Out")
-        self.third_argument = Argument("c", "In")
-        self.argument_framework = ArgumentFramework(
-          set([self.first_argument,
-               self.second_argument,
-               self.third_argument]),
-          list([(self.second_argument, self.first_argument),
-                (self.third_argument, self.second_argument)]))
+        self.argument_framework = ArgumentFramework(set(["a", "b", "c"]),
+                                                    list([("b", "a"),
+                                                          ("c", "b")]))
         self.game = Game(self.argument_framework)
         self.proponent = Proponent(self.game)
         self.opponent = Opponent(self.game)
-        self.proponent.has_to_be(self.first_argument)
+        self.proponent.has_to_be("a")

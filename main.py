@@ -1,4 +1,5 @@
 from argument import Argument
+from labelling import Labelling
 
 
 class Proponent:
@@ -6,7 +7,8 @@ class Proponent:
     def __init__(self, game):
         self.game = game
 
-    def has_to_be(self, argument):
+    def has_to_be(self, argument_name):
+        argument = Argument.find(argument_name)
         if self.is_valid_move(argument):
             return self.game.add(argument)
         raise InvalidMoveError("My Argument is BullShit")
@@ -14,7 +16,6 @@ class Proponent:
     def is_valid_move(self, argument):
         if self.game.last_argument is None:
             return True
-        # return self.game.is_valid(argument)
         return self.game.last_argument in argument.plus()
 
 
@@ -23,20 +24,22 @@ class Opponent:
     def __init__(self, game):
         self.game = game
 
-    def could_be(self, argument):
+    def could_be(self, argument_name):
+        argument = Argument.find(argument_name)
         if self.is_valid_move(argument):
             return self.game.add(argument)
         raise InvalidMoveError("My Argument is BullShit")
 
-    def concede(self, argument):
+    def concede(self, argument_name):
+        argument = Argument.find(argument_name)
         return self.game.concede(argument)
 
-    def retract(self, argument):
+    def retract(self, argument_name):
+        argument = Argument.find(argument_name)
         return self.game.retract(argument)
 
     def is_valid_move(self, argument):
         return self.game.last_argument in argument.plus()
-        # return self.game.is_valid(argument)
 
 
 class Bot:
@@ -76,11 +79,13 @@ class Game:
     @classmethod
     def from_file(self, path):
         kb = Argument.from_file(path)
+        Argument.set_labels(Labelling.grounded(kb))
         return Game(kb)
 
     @classmethod
     def from_af(cls, arguments, attack_relations):
         kb = Argument.from_af(arguments, attack_relations)
+        Argument.set_labels(Labelling.grounded(kb))
         return Game(kb)
 
     def add(self, argument):
@@ -95,17 +100,23 @@ class Game:
             if target is argument:
                 raise InvalidMoveError(
                     "An attacker of this argument is not out.")
-        return self.remove(argument)
+        return self._remove(argument)
 
     def retract(self, argument):
         for attacker, target in self.complete_attack_relations:
             if target is argument:
                 if attacker.label == "In":
-                    return self.remove(argument)
+                    return self._remove(argument)
         raise InvalidMoveError(
             "There is no attacker of this argument that is in.")
 
-    def remove(self, argument):
+    def is_valid(self, attacker):
+        return Argument.has_relation((attacker, self.last_argument))
+
+    def open_arguments(self):
+        return self.arguments
+
+    def _remove(self, argument):
         self.arguments = self.arguments.difference({argument})
         self.complete_arguments.add(argument)
         if len(self.attack_relations) > 0:
@@ -113,12 +124,6 @@ class Game:
             self.complete_attack_relations.append(last_attack_relation)
             self.last_argument = last_attack_relation[-1]
         return self
-
-    def is_valid(self, attacker):
-        return Argument.has_relation((attacker, self.last_argument))
-
-    def open_arguments(self):
-        return self.arguments
 
 
 class InvalidMoveError(Exception):

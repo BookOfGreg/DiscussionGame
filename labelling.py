@@ -56,7 +56,7 @@ class Labelling:
     @classmethod
     def all_UNDEC(cls, af):
         """ Return labelling where all arguments are labelled as UNDEC. """
-        return cls(af, set(), set(), set(af.arguments()))
+        return cls(af, set(), set(), set(af.get_arguments()))
 
     def isLegallyOUT(self, arg):
         return arg.minus() & self.IN
@@ -70,10 +70,10 @@ class Labelling:
             counter += 1
             legally_IN = set([a for a in self.UNDEC if self.isLegallyIN(a)])
             for arg in legally_IN:
-                arg.set_labeling("In", counter)
+                arg.set_label("In", counter)
             legally_OUT = set([a for a in self.UNDEC if self.isLegallyOUT(a)])
             for arg in legally_OUT:
-                arg.set_labeling("Out", counter)
+                arg.set_label("Out", counter)
             if not legally_IN and not legally_OUT:
                 for a in self.UNDEC:
                     if a not in self.steps:
