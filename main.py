@@ -9,41 +9,6 @@ except OSError:
 DB_PATH = "./db.sqlite3"
 
 
-def create_db():
-    global conn
-    global cursor
-    conn = sqlite3.connect(DB_PATH)
-    conn.isolation_level = None
-    cursor = conn.cursor()
-    cursor.execute("""CREATE TABLE arguments(id INTEGER PRIMARY KEY,
-        name TEXT, label TEXT, step INTEGER default 9223372036854775806);""")
-    cursor.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY,
-        attacker_id INTEGER, target_id INTEGER,
-        FOREIGN KEY(attacker_id) REFERENCES arguments(id),
-        FOREIGN KEY(target_id) REFERENCES arguments(id),
-        UNIQUE(attacker_id, target_id) ON CONFLICT IGNORE);""")
-    return conn
-
-
-def delete_db():
-    global conn
-    try:
-        conn.close()
-        os.remove(DB_PATH)
-    except OSError:
-        pass
-
-
-def reset_db():
-    global conn
-    global cursor
-    delete_db()
-    conn = create_db()
-    cursor = conn.cursor()
-
-create_db()
-
-
 class Proponent:
 
     def __init__(self, game):
@@ -128,48 +93,96 @@ class Argument:
 
 
 class ArgumentFramework:
+    cursor = None
+    conn = None
 
     def __init__(self, arguments, attack_relations):
-        if arguments is None:
-            arguments = set()
-        if attack_relations is None:
-            attack_relations = list()
-
-        self.arguments = arguments
-        self.attack_relations = attack_relations
-
-    def get_attack_relations(self):
-        return self.attack_relations
-
-
-class DBArgumentFramework:
-
-    def __init__(self, cursor):
-        self.cursor = cursor
+        pass
 
     def arguments(self):
         arguments = list()
-        for arg in self.cursor.execute("SELECT * FROM arguments").fetchall():
+        for arg in ArgumentFramework.cursor.execute("SELECT * FROM arguments").fetchall():
             arguments.append(Argument(arg[1], arg[2]))
         return arguments
 
     def get_attack_relations(self):
         args = list()
-        relations = self.cursor.execute("SELECT * FROM attacks").fetchall()
+        relations = ArgumentFramework.cursor.execute("SELECT * FROM attacks").fetchall()
         for attack in relations:
-            attacker = cursor.execute(
-                "SELECT * FROM arguments WHERE id=?", str(attack[1])).fetchone()
-            target = cursor.execute(
-                "SELECT * FROM arguments WHERE id=?", str(attack[2])).fetchone()
+            attacker = ArgumentFramework.cursor.execute(
+                "SELECT * FROM arguments WHERE id=?",
+                str(attack[1])).fetchone()
+            target = ArgumentFramework.cursor.execute(
+                "SELECT * FROM arguments WHERE id=?",
+                str(attack[2])).fetchone()
             attack_arg = Argument(attacker[1], attacker[2])
             target_arg = Argument(target[1], target[2])
             args.append((attack_arg, target_arg))
         return args
 
+    @classmethod
+    def _create_db():
+        conn = sqlite3.connect(DB_PATH)
+        conn.isolation_level = None
+        cursor = conn.cursor()
+        cursor.execute("""CREATE TABLE arguments(id INTEGER PRIMARY KEY,
+            name TEXT, label TEXT, step INTEGER default 4294967295);""")
+        cursor.execute("""CREATE TABLE attacks(id INTEGER PRIMARY KEY,
+            attacker_id INTEGER, target_id INTEGER,
+            FOREIGN KEY(attacker_id) REFERENCES arguments(id),
+            FOREIGN KEY(target_id) REFERENCES arguments(id),
+            UNIQUE(attacker_id, target_id) ON CONFLICT IGNORE);""")
+        return conn
+
+    @classmethod
+    def from_file(cls, path):
+        ArgumentFramework._reset_db()
+        file = open(path, "r")
+        argument_line = file.readline()
+        for arg in argument_line.strip().split(" "):
+            ArgumentFramework.cursor.execute(
+                "INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
+        for line in file:
+            attacker, target = line.strip().split(" ")
+            ArgumentFramework.cursor.execute("""INSERT INTO attacks (attacker_id, target_id)
+                WITH attacker AS (SELECT id FROM arguments WHERE name=?),
+                target AS (SELECT id FROM arguments WHERE name=?)
+                SELECT * from attacker, target""", (attacker, target))
+        file.close()
+        ArgumentFramework.conn.commit()
+        kb = ArgumentFramework(ArgumentFramework.cursor)
+        ArgumentFramework._set_labels(Labelling.grounded(kb))
+
+    @classmethod
+    def _delete_db(cls):
+        try:
+            ArgumentFramework.conn.close()
+            os.remove(DB_PATH)
+        except OSError:
+            pass
+
+    @classmethod
+    def _reset_db(cls):
+        ArgumentFramework._delete_db()
+        ArgumentFramework.conn = ArgumentFramework._create_db()
+        ArgumentFramework.cursor = ArgumentFramework.conn.cursor()
+
+    @classmethod
+    def _set_labels(cls, labelling):
+        for arg in labelling.IN:
+            ArgumentFramework.cursor.execute(
+                """UPDATE arguments SET label=?, step=? WHERE name=?""",
+                ("In", labelling.steps[arg], arg.name))
+        for arg in labelling.OUT:
+            ArgumentFramework.cursor.execute(
+              """UPDATE arguments SET label=?, step=? WHERE name=?""",
+              ("Out", labelling.steps[arg], arg.name))
+
 
 class Game:
 
-    def __init__(self, knowledge_base, arguments=None, attack_relations=None, complete_arguments=None, complete_attack_relations=None):
+    def __init__(self, knowledge_base, arguments=None, attack_relations=None,
+                 complete_arguments=None, complete_attack_relations=None):
         if arguments is None:
             arguments = set()
         if complete_arguments is None:
@@ -179,7 +192,7 @@ class Game:
         if complete_attack_relations is None:
             complete_attack_relations = list()
 
-        self.knowledge_base = knowledge_base
+        self.kb = knowledge_base
         self.arguments = arguments
         self.complete_arguments = complete_arguments
         self.attack_relations = attack_relations
@@ -188,32 +201,13 @@ class Game:
 
     @classmethod
     def from_file(self, path):
-        reset_db()
-        file = open(path, "r")
-        argument_line = file.readline()
-        for arg in argument_line.strip().split(" "):
-            cursor.execute(
-                "INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
-        for line in file:
-            attacker, target = line.strip().split(" ")
-            cursor.execute("""INSERT INTO attacks (attacker_id, target_id)
-                WITH attacker AS (SELECT id FROM arguments WHERE name=?),
-                target AS (SELECT id FROM arguments WHERE name=?)
-                SELECT * from attacker, target""", (attacker, target))
-        file.close()
-        conn.commit()
-        kb = DBArgumentFramework(cursor)
-        Game._set_labels(Labelling.grounded(kb))
+        kb = ArgumentFramework.from_file(path)
         return Game(kb)
 
     @classmethod
-    def _set_labels(self, labelling):
-        for arg in labelling.IN:
-            cursor.execute(
-                """UPDATE arguments SET label=?, step=? WHERE name=?""", ("In", labelling.steps[arg], arg.name))
-        for arg in labelling.OUT:
-            cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""",
-                           ("Out", labelling.steps[arg], arg.name))
+    def from_af(cls, arguments, attack_relations):
+        kb = ArgumentFramework(arguments, attack_relations)
+        return Game(kb)
 
     def add(self, argument):
         if self.last_argument is not None:
@@ -247,7 +241,7 @@ class Game:
         return self
 
     def is_valid(self, attacker):
-        return (attacker, self.last_argument) in self.knowledge_base.get_attack_relations()
+        return (attacker, self.last_argument) in self.kb.get_attack_relations()
 
     def open_arguments(self):
         return self.arguments
@@ -302,10 +296,12 @@ class Labelling:
         while True:
             counter += 1
             legally_IN = set([a for a in self.UNDEC if self.isLegallyIN(a)])
+            # self.frame.set_in(legally_IN)
             for arg in legally_IN:
                 cursor.execute(
                     """UPDATE arguments SET label=?, step=? WHERE name=?""",
                     ("In", counter, arg.name))
+            # self.frame.set_out(legally_OUT)
             legally_OUT = set([a for a in self.UNDEC if self.isLegallyOUT(a)])
             for arg in legally_OUT:
                 cursor.execute(

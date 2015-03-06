@@ -18,10 +18,8 @@ class TestPlayers(unittest.TestCase):
     def test_players_know_validity_of_move(self):  # Could improve
         first_argument = Argument("a", "Out")
         second_argument = Argument("b", "In")
-        knowledge = ArgumentFramework(
-            set([first_argument, second_argument]),
-            list([(second_argument, first_argument)]))
-        game = Game(knowledge)
+        game = Game.from_af(set([first_argument, second_argument]),
+                            list([(second_argument, first_argument)]))
         proponent = Proponent(game)
         opponent = Opponent(game)
         proponent.has_to_be(first_argument)
@@ -33,10 +31,9 @@ class TestBot(unittest.TestCase):
     def test_bot_knows_which_argument_to_do_next(self):
         first_argument = Argument("a", "Out")
         second_argument = Argument("b", "In")
-        knowledge = ArgumentFramework(
+        game = Game.from_af(
             set([first_argument, second_argument]),
             list([(second_argument, first_argument)]))
-        game = Game(knowledge)
         proponent = Proponent(game)
         proponent.has_to_be(first_argument)
         bot = Bot(game)
@@ -85,7 +82,7 @@ class TestRules(unittest.TestCase):
         self.third_argument = Argument("c", "In")
         self.fourth_argument = Argument("d", "Out")
         self.fifth_argument = Argument("e", "In")
-        argument_framework = ArgumentFramework(
+        self.game = Game.from_af(
           set([self.first_argument,
                self.second_argument,
                self.third_argument,
@@ -95,7 +92,6 @@ class TestRules(unittest.TestCase):
                 (self.third_argument, self.second_argument),
                 (self.fourth_argument, self.third_argument),
                 (self.fifth_argument, self.fourth_argument)]))
-        self.game = Game(argument_framework)
         self.proponent = Proponent(self.game)
         self.opponent = Opponent(self.game)
         self.proponent.has_to_be(self.first_argument)
