@@ -46,6 +46,17 @@ class TestBot(unittest.TestCase):
         next_move = bot.next_move()
         self.assertEqual(next_move, Argument("b"))
 
+    def test_bot_knows_when_to_concede(self):
+        game = Game.from_af(set(["a", "b"]),
+                            list([("b", "a")]))
+        proponent = Proponent(game)
+        opponent = Opponent(game)
+        proponent.has_to_be("a")
+        opponent.could_be("b")
+        bot = Bot(game)
+        next_move = bot.next_move()
+        self.assertEqual(next_move, Argument("b"))
+
 
 class TestRules(unittest.TestCase):
 
