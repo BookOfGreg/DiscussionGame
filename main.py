@@ -100,13 +100,19 @@ class Argument:
         self.label = label
 
     def minus(self):
-        return set(self._attackers(cursor.execute("""SELECT attacks.id, attacker_id, target_id FROM attacks
-            JOIN arguments ON target_id=arguments.id AND arguments.name=?""", self.name).fetchall()))
+        return set(self._attackers(
+            cursor.execute("""SELECT attacks.id, attacker_id, target_id
+                              FROM attacks JOIN arguments
+                              ON target_id=arguments.id
+                              AND arguments.name=?""",
+                           self.name).fetchall()))
 
     def _attackers(self, relations):
         args = list()
         for attack in relations:
-            arg_tuple = cursor.execute("SELECT * FROM arguments WHERE id=?", str(attack[1])).fetchone()
+            arg_tuple = cursor.execute(
+                "SELECT * FROM arguments WHERE id=?",
+                str(attack[1])).fetchone()
             arg = Argument(arg_tuple[1], arg_tuple[2])
             args.append(arg)
         return args
@@ -151,8 +157,10 @@ class DBArgumentFramework:
         args = list()
         relations = self.cursor.execute("SELECT * FROM attacks").fetchall()
         for attack in relations:
-            attacker = cursor.execute("SELECT * FROM arguments WHERE id=?", str(attack[1])).fetchone()
-            target = cursor.execute("SELECT * FROM arguments WHERE id=?", str(attack[2])).fetchone()
+            attacker = cursor.execute(
+                "SELECT * FROM arguments WHERE id=?", str(attack[1])).fetchone()
+            target = cursor.execute(
+                "SELECT * FROM arguments WHERE id=?", str(attack[2])).fetchone()
             attack_arg = Argument(attacker[1], attacker[2])
             target_arg = Argument(target[1], target[2])
             args.append((attack_arg, target_arg))
@@ -184,7 +192,8 @@ class Game:
         file = open(path, "r")
         argument_line = file.readline()
         for arg in argument_line.strip().split(" "):
-            cursor.execute("INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
+            cursor.execute(
+                "INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
         for line in file:
             attacker, target = line.strip().split(" ")
             cursor.execute("""INSERT INTO attacks (attacker_id, target_id)
@@ -200,12 +209,15 @@ class Game:
     @classmethod
     def _set_labels(self, labelling):
         for arg in labelling.IN:
-            cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("In", labelling.steps[arg], arg.name))
+            cursor.execute(
+                """UPDATE arguments SET label=?, step=? WHERE name=?""", ("In", labelling.steps[arg], arg.name))
         for arg in labelling.OUT:
-            cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("Out", labelling.steps[arg], arg.name))
+            cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""",
+                           ("Out", labelling.steps[arg], arg.name))
 
     def add(self, argument):
-        if self.last_argument is not None: self.attack_relations.append((argument, self.last_argument))
+        if self.last_argument is not None:
+            self.attack_relations.append((argument, self.last_argument))
         self.arguments.add(argument)
         self.last_argument = argument
         return self
@@ -213,7 +225,8 @@ class Game:
     def concede(self, argument):
         for attacker, target in self.attack_relations:
             if target is argument:
-                raise InvalidMoveError("An attacker of this argument is not out.")
+                raise InvalidMoveError(
+                    "An attacker of this argument is not out.")
         return self.remove(argument)
 
     def retract(self, argument):
@@ -221,7 +234,8 @@ class Game:
             if target is argument:
                 if attacker.label == "In":
                     return self.remove(argument)
-        raise InvalidMoveError("There is no attacker of this argument that is in.")
+        raise InvalidMoveError(
+            "There is no attacker of this argument that is in.")
 
     def remove(self, argument):
         self.arguments = self.arguments.difference({argument})
@@ -289,10 +303,14 @@ class Labelling:
             counter += 1
             legally_IN = set([a for a in self.UNDEC if self.isLegallyIN(a)])
             for arg in legally_IN:
-                cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("In", counter, arg.name))
+                cursor.execute(
+                    """UPDATE arguments SET label=?, step=? WHERE name=?""",
+                    ("In", counter, arg.name))
             legally_OUT = set([a for a in self.UNDEC if self.isLegallyOUT(a)])
             for arg in legally_OUT:
-                cursor.execute("""UPDATE arguments SET label=?, step=? WHERE name=?""", ("Out", counter, arg.name))
+                cursor.execute(
+                    """UPDATE arguments SET label=?, step=? WHERE name=?""",
+                    ("Out", counter, arg.name))
             if not legally_IN and not legally_OUT:
                 for a in self.UNDEC:
                     if a not in self.steps:

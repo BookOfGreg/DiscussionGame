@@ -18,9 +18,9 @@ class TestPlayers(unittest.TestCase):
     def test_players_know_validity_of_move(self):  # Could improve
         first_argument = Argument("a", "Out")
         second_argument = Argument("b", "In")
-        Argument()
-        knowledge = ArgumentFramework(set([first_argument, second_argument]),
-                                      list([(second_argument, first_argument)]))
+        knowledge = ArgumentFramework(
+            set([first_argument, second_argument]),
+            list([(second_argument, first_argument)]))
         game = Game(knowledge)
         proponent = Proponent(game)
         opponent = Opponent(game)
@@ -33,8 +33,9 @@ class TestBot(unittest.TestCase):
     def test_bot_knows_which_argument_to_do_next(self):
         first_argument = Argument("a", "Out")
         second_argument = Argument("b", "In")
-        knowledge = ArgumentFramework(set([first_argument, second_argument]),
-                                      list([(second_argument, first_argument)]))
+        knowledge = ArgumentFramework(
+            set([first_argument, second_argument]),
+            list([(second_argument, first_argument)]))
         game = Game(knowledge)
         proponent = Proponent(game)
         proponent.has_to_be(first_argument)
@@ -69,12 +70,14 @@ class TestRules(unittest.TestCase):
 
     def test_could_be_attacks_last_has_to_be(self):
         self.opponent.could_be(self.fourth_argument)
-        self.assertEqual(self.game.attack_relations[-1][-1], self.third_argument)
+        self.assertEqual(self.game.attack_relations[-1][-1],
+                         self.third_argument)
 
     def test_has_to_be_attacks_last_could_be(self):
         self.opponent.could_be(self.fourth_argument)
         self.proponent.has_to_be(self.fifth_argument)
-        self.assertEqual(self.game.attack_relations[-1][-1], self.fourth_argument)
+        self.assertEqual(self.game.attack_relations[-1][-1],
+                         self.fourth_argument)
 
     def setUp(self):
         self.first_argument = Argument("a", "In")
@@ -82,15 +85,16 @@ class TestRules(unittest.TestCase):
         self.third_argument = Argument("c", "In")
         self.fourth_argument = Argument("d", "Out")
         self.fifth_argument = Argument("e", "In")
-        argument_framework = ArgumentFramework(set([self.first_argument,
-                                                    self.second_argument,
-                                                    self.third_argument,
-                                                    self.fourth_argument,
-                                                    self.fifth_argument]),
-                                               list([(self.second_argument, self.first_argument),
-                                                     (self.third_argument, self.second_argument),
-                                                     (self.fourth_argument, self.third_argument),
-                                                     (self.fifth_argument, self.fourth_argument)]))
+        argument_framework = ArgumentFramework(
+          set([self.first_argument,
+               self.second_argument,
+               self.third_argument,
+               self.fourth_argument,
+               self.fifth_argument]),
+          list([(self.second_argument, self.first_argument),
+                (self.third_argument, self.second_argument),
+                (self.fourth_argument, self.third_argument),
+                (self.fifth_argument, self.fourth_argument)]))
         self.game = Game(argument_framework)
         self.proponent = Proponent(self.game)
         self.opponent = Opponent(self.game)
@@ -123,24 +127,28 @@ class TestMoves(unittest.TestCase):
     def test_could_be(self):
         new_game = self.opponent.could_be(self.second_argument)
 
-        expected_game = Game(self.argument_framework,
-                             arguments=set([self.first_argument, self.second_argument]),
-                             attack_relations=list([(self.second_argument, self.first_argument)]))
+        expected_game = Game(
+          self.argument_framework,
+          arguments=set([self.first_argument, self.second_argument]),
+          attack_relations=list([(self.second_argument, self.first_argument)]))
 
         self.assertEqual(new_game.arguments, expected_game.arguments)
-        self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
+        self.assertEqual(new_game.attack_relations,
+                         expected_game.attack_relations)
 
     def test_concede(self):
         self.opponent.could_be(self.second_argument)
         self.proponent.has_to_be(self.third_argument)
         new_game = self.opponent.concede(self.third_argument)
 
-        expected_game = Game(self.argument_framework,
-                             arguments=set([self.first_argument, self.second_argument]),
-                             attack_relations=list([(self.second_argument, self.first_argument)]))
+        expected_game = Game(
+          self.argument_framework,
+          arguments=set([self.first_argument, self.second_argument]),
+          attack_relations=list([(self.second_argument, self.first_argument)]))
 
         self.assertEqual(new_game.arguments, expected_game.arguments)
-        self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
+        self.assertEqual(new_game.attack_relations,
+                         expected_game.attack_relations)
 
     def test_retract(self):
         self.opponent.could_be(self.second_argument)
@@ -153,17 +161,19 @@ class TestMoves(unittest.TestCase):
                              attack_relations=list())
 
         self.assertEqual(new_game.arguments, expected_game.arguments)
-        self.assertEqual(new_game.attack_relations, expected_game.attack_relations)
+        self.assertEqual(new_game.attack_relations,
+                         expected_game.attack_relations)
 
     def setUp(self):
         self.first_argument = Argument("a", "In")
         self.second_argument = Argument("b", "Out")
         self.third_argument = Argument("c", "In")
-        self.argument_framework = ArgumentFramework(set([self.first_argument,
-                                                         self.second_argument,
-                                                         self.third_argument]),
-                                                    list([(self.second_argument, self.first_argument),
-                                                          (self.third_argument, self.second_argument)]))
+        self.argument_framework = ArgumentFramework(
+          set([self.first_argument,
+               self.second_argument,
+               self.third_argument]),
+          list([(self.second_argument, self.first_argument),
+                (self.third_argument, self.second_argument)]))
         self.game = Game(self.argument_framework)
         self.proponent = Proponent(self.game)
         self.opponent = Opponent(self.game)
