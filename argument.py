@@ -28,25 +28,25 @@ class Argument:
             (labelling, step, self.name))
 
     def plus(self):
-        return set(self._attackers(
-            Argument.cursor.execute("""SELECT attacker_id, target_id
+        return set(self._to_args(
+            Argument.cursor.execute("""SELECT target_id
                               FROM attacks JOIN arguments
                               ON attacker_id=arguments.id
                               AND arguments.name=?""",
                                     self.name).fetchall()))
 
     def minus(self):
-        return set(self._attackers(
-            Argument.cursor.execute("""SELECT attacker_id, target_id
+        return set(self._to_args(
+            Argument.cursor.execute("""SELECT attacker_id
                               FROM attacks JOIN arguments
                               ON target_id=arguments.id
                               AND arguments.name=?""",
                                     self.name).fetchall()))
 
-    def _attackers(self, relations):
+    def _to_args(self, relations):
         args = list()
         for attack in relations:
-            arg = Argument._find_by_id(str(attack[1]))
+            arg = Argument._find_by_id(str(attack[0]))
             args.append(arg)
         return args
 
