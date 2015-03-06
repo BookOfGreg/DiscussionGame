@@ -13,11 +13,14 @@ class Argument:
     cursor = None
     conn = None
 
-    def __init__(self, name, label=None):
+    def __init__(self, name, label=None, step=None):
         if label is None:
             label = "Undec"
+        if step is None:
+            step = 0
         self.name = name
         self.label = label
+        self.step = step
 
     def set_label(self, labelling, step=0):
         Argument.cursor.execute(
@@ -80,7 +83,7 @@ class Argument:
                 argument_name).fetchone()
         if arg is None:
             raise InvalidArgumentError("Argument does not exist")
-        return Argument(arg[1], arg[2])
+        return Argument(arg[1], arg[2], arg[3])
 
     @classmethod
     def from_file(cls, path):
@@ -89,12 +92,9 @@ class Argument:
         relations = list()
         argument_line = file.readline()
         arguments = argument_line.strip().split(" ")
-        # arguments.add(Argument(arg, "Undec"))
         for line in file:
             attacker, target = line.strip().split(" ")
-            relations.append(attacker, target)
-            # relations.append((Argument(attacker, "Undec"),
-            #                   Argument(target, "Undec")))
+            relations.append((attacker, target))
         file.close()
         return Argument.from_af(arguments, relations)
 

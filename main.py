@@ -51,13 +51,17 @@ class Bot:
         args = self.game.last_argument.minus()
         if not args:
             return self.game.last_argument
-        return list(args).sort(key=lambda arg: arg.step if arg.step else 1000,
-                               reverse=True)[0]
+        args = list(args)
+        args.sort(key=lambda arg: arg.step if arg.step else 1000,
+                  reverse=True)
+        return args[0]
 
 
 class Game:
+
     """This should be used as a singleton due to it depending on Argument
     which has one instance of sqlite at any time."""
+
     def __init__(self, knowledge_base, arguments=None, attack_relations=None,
                  complete_arguments=None, complete_attack_relations=None):
         if arguments is None:
@@ -97,16 +101,18 @@ class Game:
 
     def concede(self, argument):
         for attacker, target in self.attack_relations:
-            if target is argument:
+            if argument != self.last_argument:
+                raise InvalidMoveError(
+                    "Cannot concede anything but the last argument.")
+            if target == argument:
                 raise InvalidMoveError(
                     "An attacker of this argument is not out.")
         return self._remove(argument)
 
     def retract(self, argument):
         for attacker, target in self.complete_attack_relations:
-            if target is argument:
-                if attacker.label == "In":
-                    return self._remove(argument)
+            if target == argument:
+                return self._remove(argument)
         raise InvalidMoveError(
             "There is no attacker of this argument that is in.")
 

@@ -5,11 +5,22 @@ from main import *
 import unittest
 
 
+def last(enumerable):
+    return enumerable[-1]
+
+
+def first(enumerable):
+    return enumerable[0]
+
+attacker = first
+target = last
+
+
 class TestKnowledgeBaseLoaders(unittest.TestCase):
 
     def test_abstract_loader(self):
         game = Game.from_file("./example_kb_2.txt")
-        self.assertEqual(len(game.knowledge_base.get_attack_relations()), 3)
+        self.assertEqual(len(game.kb.get_arguments()), 4)
         # There exists an argument that has 2 attackers assertion.
 
 
@@ -21,7 +32,7 @@ class TestPlayers(unittest.TestCase):
         proponent = Proponent(game)
         opponent = Opponent(game)
         proponent.has_to_be("a")
-        self.assertTrue(opponent.is_valid_move("b"))
+        self.assertTrue(opponent.is_valid_move(Argument("b")))
 
 
 class TestBot(unittest.TestCase):
@@ -31,9 +42,13 @@ class TestBot(unittest.TestCase):
                             list([("b", "a")]))
         proponent = Proponent(game)
         proponent.has_to_be("a")
+        print(Argument("a").plus())
+        print(Argument("a").minus())
+        print(Argument("b").plus())
+        print(Argument("b").minus())
         bot = Bot(game)
-        bot.next_move()
-        self.assertEqual(game.last_argument, "b")
+        next_move = bot.next_move()
+        self.assertEqual(next_move, Argument("b"))
 
 
 class TestRules(unittest.TestCase):
@@ -60,12 +75,12 @@ class TestRules(unittest.TestCase):
 
     def test_could_be_attacks_last_has_to_be(self):
         self.opponent.could_be("d")
-        self.assertEqual(self.game.attack_relations[-1][-1], "c")
+        self.assertEqual(target(last(self.game.attack_relations)).name, "c")
 
     def test_has_to_be_attacks_last_could_be(self):
         self.opponent.could_be("d")
         self.proponent.has_to_be("e")
-        self.assertEqual(self.game.attack_relations[-1][-1], "d")
+        self.assertEqual(target(last(self.game.attack_relations)).name, "d")
 
     def setUp(self):
         self.game = Game.from_af(set(["a", "b", "c", "d", "e"]),
@@ -92,54 +107,37 @@ class TestArgument(unittest.TestCase):
 class TestMoves(unittest.TestCase):
 
     def test_has_to_be(self):
-        expected_game = Game(self.argument_framework, arguments=set(["a"]))
-
-        self.assertEqual(self.game.arguments, expected_game.arguments)
+        self.assertTrue(Argument("a") in self.game.arguments)
 
     def test_could_be(self):
         new_game = self.opponent.could_be("b")
-
-        expected_game = Game(
-          self.argument_framework,
-          arguments=set(["a", "b"]),
-          attack_relations=list([("b", "a")]))
-
-        self.assertEqual(new_game.arguments, expected_game.arguments)
-        self.assertEqual(new_game.attack_relations,
-                         expected_game.attack_relations)
+        self.assertEqual(set([Argument("a"), Argument("b")]),
+                         new_game.arguments)
+        self.assertEqual(list([(Argument("b"), Argument("a"))]),
+                         new_game.attack_relations)
 
     def test_concede(self):
         self.opponent.could_be("b")
         self.proponent.has_to_be("c")
-        new_game = self.opponent.concede("c")
-
-        expected_game = Game(self.argument_framework,
-                             arguments=set(["a", "b"]),
-                             attack_relations=list([("b", "a")]))
-
-        self.assertEqual(new_game.arguments, expected_game.arguments)
-        self.assertEqual(new_game.attack_relations,
-                         expected_game.attack_relations)
+        game = self.opponent.concede("c")
+        self.assertTrue(Argument("c") not in game.arguments)
+        self.assertTrue((Argument("b"), Argument("a"))
+                        in game.attack_relations)
+        self.assertFalse((Argument("c"), Argument("b"))
+                         in game.attack_relations)
 
     def test_retract(self):
         self.opponent.could_be("b")
         self.proponent.has_to_be("c")
         self.opponent.concede("c")
         new_game = self.opponent.retract("b")
-
-        expected_game = Game(self.argument_framework,
-                             arguments=set(["a"]),
-                             attack_relations=list())
-
-        self.assertEqual(new_game.arguments, expected_game.arguments)
-        self.assertEqual(new_game.attack_relations,
-                         expected_game.attack_relations)
+        self.assertEqual(set([Argument("a")]), new_game.arguments)
+        self.assertTrue(list() == new_game.attack_relations)
 
     def setUp(self):
-        self.argument_framework = ArgumentFramework(set(["a", "b", "c"]),
-                                                    list([("b", "a"),
-                                                          ("c", "b")]))
-        self.game = Game(self.argument_framework)
+        self.game = Game.from_af(set(["a", "b", "c"]),
+                                 list([("b", "a"),
+                                       ("c", "b")]))
         self.proponent = Proponent(self.game)
         self.opponent = Opponent(self.game)
         self.proponent.has_to_be("a")
