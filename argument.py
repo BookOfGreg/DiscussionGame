@@ -23,6 +23,14 @@ class Argument:
             """UPDATE arguments SET label=?, step=? WHERE name=?""",
             (labelling, step, self.name))
 
+    def plus(self):
+        return set(self._attackers(
+            Argument.cursor.execute("""SELECT attacks.id, attacker_id, target_id
+                              FROM attacks JOIN arguments
+                              ON attacker_id=arguments.id
+                              AND arguments.name=?""",
+                                    self.name).fetchall()))
+
     def minus(self):
         return set(self._attackers(
             Argument.cursor.execute("""SELECT attacks.id, attacker_id, target_id
@@ -59,20 +67,25 @@ class Argument:
         return arguments
 
         # This needed?
-    def get_attack_relations(self):
-        args = list()
-        relations = Argument.cursor.execute("SELECT * FROM attacks").fetchall()
-        for attack in relations:
-            attacker = Argument.cursor.execute(
-                "SELECT * FROM arguments WHERE id=?",
-                str(attack[1])).fetchone()
-            target = Argument.cursor.execute(
-                "SELECT * FROM arguments WHERE id=?",
-                str(attack[2])).fetchone()
-            attack_arg = Argument(attacker[1], attacker[2])
-            target_arg = Argument(target[1], target[2])
-            args.append((attack_arg, target_arg))
-        return args
+# def get_attack_relations(self):
+#     args = list()
+#     relations = Argument.cursor.execute("SELECT * FROM attacks").fetchall()
+#     for attack in relations:
+#         attacker = Argument.cursor.execute(
+#             "SELECT * FROM arguments WHERE id=?",
+#             str(attack[1])).fetchone()
+#         target = Argument.cursor.execute(
+#             "SELECT * FROM arguments WHERE id=?",
+#             str(attack[2])).fetchone()
+#         attack_arg = Argument(attacker[1], attacker[2])
+#         target_arg = Argument(target[1], target[2])
+#         args.append((attack_arg, target_arg))
+#     return args
+
+    # Can use argument.plus instead of this check for now.
+    # @classmethod
+    # def has_relation(cls, relation):
+    #     Argument.cursor.execute("SELECT * FROM ")
 
     @classmethod
     def _create_db(cls):

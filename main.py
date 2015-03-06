@@ -14,7 +14,8 @@ class Proponent:
     def is_valid_move(self, argument):
         if self.game.last_argument is None:
             return True
-        return self.game.is_valid(argument)
+        # return self.game.is_valid(argument)
+        return self.game.last_argument in argument.plus()
 
 
 class Opponent:
@@ -34,7 +35,8 @@ class Opponent:
         return self.game.retract(argument)
 
     def is_valid_move(self, argument):
-        return self.game.is_valid(argument)
+        return self.game.last_argument in argument.plus()
+        # return self.game.is_valid(argument)
 
 
 class Bot:
@@ -51,7 +53,8 @@ class Bot:
 
 
 class Game:
-
+    """This should be used as a singleton due to it depending on Argument
+    which has one instance of sqlite at any time."""
     def __init__(self, knowledge_base, arguments=None, attack_relations=None,
                  complete_arguments=None, complete_attack_relations=None):
         if arguments is None:
@@ -77,7 +80,7 @@ class Game:
 
     @classmethod
     def from_af(cls, arguments, attack_relations):
-        kb = Argument(arguments, attack_relations)
+        kb = Argument.from_af(arguments, attack_relations)
         return Game(kb)
 
     def add(self, argument):
@@ -112,7 +115,7 @@ class Game:
         return self
 
     def is_valid(self, attacker):
-        return (attacker, self.last_argument) in self.kb.get_attack_relations()
+        return Argument.has_relation((attacker, self.last_argument))
 
     def open_arguments(self):
         return self.arguments
