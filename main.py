@@ -9,14 +9,14 @@ class Proponent:
 
     def has_to_be(self, argument_name):
         argument = Argument.find(argument_name)
-        if self.is_valid_move(argument):
+        if self.game.is_valid(argument):
             return self.game.add(argument)
         raise InvalidMoveError("My Argument is BullShit")
 
-    def is_valid_move(self, argument):
-        if self.game.last_argument is None:
-            return True
-        return self.game.last_argument in argument.plus()
+    # def _is_valid_move(self, argument):
+    #     if self.game.last_argument is None:
+    #         return True
+    #     return self.game.last_argument in argument.plus()
 
 
 class Opponent:
@@ -26,7 +26,7 @@ class Opponent:
 
     def could_be(self, argument_name):
         argument = Argument.find(argument_name)
-        if self.is_valid_move(argument):
+        if self.game.is_valid(argument):
             return self.game.add(argument)
         raise InvalidMoveError("My Argument is BullShit")
 
@@ -38,8 +38,8 @@ class Opponent:
         argument = Argument.find(argument_name)
         return self.game.retract(argument)
 
-    def is_valid_move(self, argument):
-        return self.game.last_argument in argument.plus()
+    # def _is_valid_move(self, argument):
+    #     return self.game.last_argument in argument.plus()
 
 
 class Bot:
@@ -116,8 +116,15 @@ class Game:
         raise InvalidMoveError(
             "There is no attacker of this argument that is in.")
 
-    def is_valid(self, attacker):
-        return Argument.has_relation((attacker, self.last_argument))
+    def is_valid(self, argument):
+        if self.last_argument is None:  # First move
+            return True
+        if argument in self.complete_arguments:
+            return False
+        return self.last_argument in argument.plus()
+
+    # def is_valid(self, attacker):
+    #     return Argument.has_relation((attacker, self.last_argument))
 
     def open_arguments(self):
         return self.arguments

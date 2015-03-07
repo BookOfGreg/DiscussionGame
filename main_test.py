@@ -24,17 +24,6 @@ class TestKnowledgeBaseLoaders(unittest.TestCase):
         # There exists an argument that has 2 attackers assertion.
 
 
-class TestPlayers(unittest.TestCase):
-
-    def test_players_know_validity_of_move(self):  # Could improve
-        game = Game.from_af(set(["a", "b"]),
-                            list([("b", "a")]))
-        proponent = Proponent(game)
-        opponent = Opponent(game)
-        proponent.has_to_be("a")
-        self.assertTrue(opponent.is_valid_move(Argument("b")))
-
-
 class TestBot(unittest.TestCase):
 
     def test_bot_knows_which_argument_to_do_next(self):
@@ -88,6 +77,17 @@ class TestRules(unittest.TestCase):
         self.opponent.could_be("d")
         self.proponent.has_to_be("e")
         self.assertEqual(target(last(self.game.attack_relations)).name, "d")
+
+    def test_cannot_use_has_to_be_on_conceded_arg(self):
+        self.opponent.concede("c")
+        with self.assertRaises(InvalidMoveError):
+            self.proponent.has_to_be("c")
+
+    def test_cannot_use_could_be_on_retracted_arg(self):
+        self.opponent.concede("c")
+        self.opponent.retract("b")
+        with self.assertRaises(InvalidMoveError):
+            self.opponent.could_be("b")
 
     def setUp(self):
         self.game = Game.from_af(set(["a", "b", "c", "d", "e"]),
