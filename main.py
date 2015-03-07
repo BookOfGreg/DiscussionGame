@@ -9,14 +9,9 @@ class Proponent:
 
     def has_to_be(self, argument_name):
         argument = Argument.find(argument_name)
-        if self.game.is_valid(argument):
+        if self.game.can_argue_with(argument):
             return self.game.add(argument)
         raise InvalidMoveError("My Argument is BullShit")
-
-    # def _is_valid_move(self, argument):
-    #     if self.game.last_argument is None:
-    #         return True
-    #     return self.game.last_argument in argument.plus()
 
 
 class Opponent:
@@ -26,9 +21,9 @@ class Opponent:
 
     def could_be(self, argument_name):
         argument = Argument.find(argument_name)
-        if self.game.is_valid(argument):
+        if self.game.can_argue_with(argument):
             return self.game.add(argument)
-        raise InvalidMoveError("My Argument is BullShit")
+        raise InvalidMoveError("My argument does not attack the last argument")
 
     def concede(self, argument_name):
         argument = Argument.find(argument_name)
@@ -37,9 +32,6 @@ class Opponent:
     def retract(self, argument_name):
         argument = Argument.find(argument_name)
         return self.game.retract(argument)
-
-    # def _is_valid_move(self, argument):
-    #     return self.game.last_argument in argument.plus()
 
 
 class Bot:
@@ -100,11 +92,11 @@ class Game:
         return self
 
     def concede(self, argument):
+        if argument != self.last_argument:
+            raise InvalidMoveError(
+                "Cannot concede anything but the last argument.")
         for attacker, target in self.attack_relations:
-            if argument != self.last_argument:
-                raise InvalidMoveError(
-                    "Cannot concede anything but the last argument.")
-            if target == argument:
+            if target == argument:  # Allows person to concede early.
                 raise InvalidMoveError(
                     "An attacker of this argument is not out.")
         return self._remove(argument)
@@ -116,18 +108,12 @@ class Game:
         raise InvalidMoveError(
             "There is no attacker of this argument that is in.")
 
-    def is_valid(self, argument):
+    def can_argue_with(self, argument):
         if self.last_argument is None:  # First move
             return True
         if argument in self.complete_arguments:
             return False
         return self.last_argument in argument.plus()
-
-    # def is_valid(self, attacker):
-    #     return Argument.has_relation((attacker, self.last_argument))
-
-    def open_arguments(self):
-        return self.arguments
 
     def _remove(self, argument):
         self.arguments = self.arguments.difference({argument})

@@ -89,6 +89,14 @@ class TestRules(unittest.TestCase):
         with self.assertRaises(InvalidMoveError):
             self.opponent.could_be("b")
 
+    def test_cannot_concede_argument_that_is_not_last_argument(self):
+        with self.assertRaises(InvalidMoveError):
+            self.opponent.concede("d")
+
+    def test_cannot_concede_argument_that_has_not_been_played(self):
+        with self.assertRaises(InvalidMoveError):
+            self.opponent.concede("a")
+
     def setUp(self):
         self.game = Game.from_af(set(["a", "b", "c", "d", "e"]),
                                  list([("b", "a"),
