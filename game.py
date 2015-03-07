@@ -7,22 +7,12 @@ class Game:
     """This should be used as a singleton due to it depending on Argument
     which has one instance of sqlite at any time."""
 
-    def __init__(self, knowledge_base, arguments=None, attack_relations=None,
-                 complete_arguments=None, complete_attack_relations=None):
-        if arguments is None:
-            arguments = set()
-        if complete_arguments is None:
-            complete_arguments = set()
-        if attack_relations is None:
-            attack_relations = list()
-        if complete_attack_relations is None:
-            complete_attack_relations = list()
-
+    def __init__(self, knowledge_base):
+        self.arguments = set()
+        self.complete_arguments = set()
+        self.attack_relations = list()
+        self.complete_attack_relations = list()
         self.kb = knowledge_base
-        self.arguments = arguments
-        self.complete_arguments = complete_arguments
-        self.attack_relations = attack_relations
-        self.complete_attack_relations = complete_attack_relations
         self.last_argument = None
 
     @classmethod
