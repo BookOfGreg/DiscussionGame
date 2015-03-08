@@ -1,4 +1,5 @@
 from argument import Argument
+import cmd
 
 
 class Proponent:
@@ -44,8 +45,19 @@ class Bot:
         return args[0]
 
 
-def main():
-    pass
+class GameShell(cmd.Cmd):
+    intro = "This text is displayed on loading"
+    prompt = "proponent: "
+
+    def do_has_to_be(self, arg):
+        Proponent.has_to_be(arg)
+
+    def do_quit(self, line):
+        return True  # True from any do_ method will tell the game to quit.
+
+    do_exit = do_quit
+    do_stop = do_quit
+    do_close = do_quit
 
 if __name__ == "__main__":
-    main()
+    GameShell().cmdloop()
