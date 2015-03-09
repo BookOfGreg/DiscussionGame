@@ -1,63 +1,102 @@
-from argument import Argument
 import cmd
-
-
-class Proponent:
-
-    def __init__(self, game):
-        self.game = game
-
-    def has_to_be(self, argument_name):
-        argument = Argument.find(argument_name)
-        return self.game.add(argument)
-
-
-class Opponent:
-
-    def __init__(self, game):
-        self.game = game
-
-    def could_be(self, argument_name):
-        argument = Argument.find(argument_name)
-        return self.game.add(argument)
-
-    def concede(self, argument_name):
-        argument = Argument.find(argument_name)
-        return self.game.concede(argument)
-
-    def retract(self, argument_name):
-        argument = Argument.find(argument_name)
-        return self.game.retract(argument)
-
-
-class Bot:
-
-    def __init__(self, game):
-        self.game = game
-
-    def next_move(self):
-        args = self.game.last_argument.minus()
-        if not args:
-            return self.game.last_argument
-        args = list(args)
-        args.sort(key=lambda arg: arg.step if arg.step else 1000,
-                  reverse=True)
-        return args[0]
+from game import Game
+from player import Proponent, Opponent
 
 
 class GameShell(cmd.Cmd):
-    intro = "This text is displayed on loading"
-    prompt = "proponent: "
+    intro = """This is the grounded persuasion game. Commands:
+    new_game (file_path, proponent is a bot, opponent is a bot) - to start a game
+    quit, close, exit, stop - to leave"""
+    prompt = "Cmd: "  # Proponent always goes first
+    current_player = None
+    opponent = None
+    proponent = None
+    game = None
 
-    def do_has_to_be(self, arg):
-        Proponent.has_to_be(arg)
+    def do_new_game(self, file_path):  # , proponent_bot=False, Opponent_bot=False):
+        "Takes a file path to load argument into the game"
+        try:
+            self.game = Game.from_file(file_path)
+        except FileNotFoundError as e:
+            print(e)  # Reset all values to none on failure
+            self.current_player = None
+            self.opponent = None
+            self.proponent = None
+            self.game = None
+        else:
+            self.proponent = Proponent(self.game)
+            self.proponent.is_bot = False
+            self.opponent = Opponent(self.game)
+            self.opponent.is_bot = False
+            self.current_player = self.proponent
+            self.prompt = "Proponent: "
 
-    def do_quit(self, line):
+    def do_has_to_be(self, argument):
+        "When it is the Proponents turn, allows player to put forward an argument"
+        if self.current_player is not self.proponent:
+            return False
+        try:
+            self.proponent.has_to_be(argument)
+        except Exception as e:
+            print(e)
+        else:
+            self._toggle_player()
+
+    def do_could_be(self, argument):
+        "When it is the Opponents turn, allows player to put forward an argument"
+        if self.current_player is not self.opponent:
+            return False
+        try:
+            self.opponent.could_be(argument)
+        except Exception as e:
+            print(e)
+        else:
+            self._toggle_player()
+
+    def do_concede(self, _):
+        "When it is the Opponents turn, allows player to concede an argument"
+        if self.current_player is not self.opponent:
+            return False
+        try:
+            self.opponent.concede(self.game.last_argument)
+        except Exception as e:
+            print(e)
+        else:
+            self._toggle_player()
+
+    def do_retract(self, _):
+        "When it is the Opponents turn, allows player to retract an argument"
+        if self.current_player is not self.opponent:
+            return False
+        try:
+            self.opponent.retract(self.game.last_argument)
+        except Exception as e:
+            print(e)
+        else:
+            self._toggle_player()
+
+    def postcmd(self, stop, line):
+        if stop:
+            return stop
+        if self.current_player and self.current_player.is_bot:
+            self.current_player.next_move()
+
+    # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move
+
+    def do_quit(self, _):
         return True  # True from any do_ method will tell the game to quit.
 
     do_exit = do_quit
     do_stop = do_quit
     do_close = do_quit
+
+    def _toggle_player(self):
+        if self.current_player is self.proponent:
+            self.current_player = self.opponent
+            self.prompt = "Opponent: "
+        else:
+            self.current_player = self.proponent
+            self.prompt = "Proponent: "
 
 if __name__ == "__main__":
     GameShell().cmdloop()
