@@ -15,7 +15,7 @@ class GameShell(cmd.Cmd):
 
     def do_new_game(self, arg):
         "Takes a file path to load argument into the game, and proponent and opponent bot values"
-        file_path, proponent_bot, opponent_bot = arg.split()
+        file_path, proponent_bot, opponent_bot = (arg.split() + [False, False])[:3]
         try:
             self.game = Game.from_file(file_path)
         except FileNotFoundError as e:
@@ -42,6 +42,7 @@ class GameShell(cmd.Cmd):
         except Exception as e:
             print(e)
         else:
+            print("It has to be ", argument)
             self._toggle_player()
 
     def do_could_be(self, argument):
@@ -53,9 +54,10 @@ class GameShell(cmd.Cmd):
         except Exception as e:
             print(e)
         else:
+            print("It could be ", argument)
             self._toggle_player()
 
-    def do_concede(self, _):
+    def do_concede(self, arg):
         "When it is the Opponents turn, allows player to concede an argument"
         if self.current_player is not self.opponent:
             return False
@@ -64,9 +66,10 @@ class GameShell(cmd.Cmd):
         except Exception as e:
             print(e)
         else:
+            print("I concede ", self.game.last_argument)
             self._toggle_player()
 
-    def do_retract(self, _):
+    def do_retract(self, arg):
         "When it is the Opponents turn, allows player to retract an argument"
         if self.current_player is not self.opponent:
             return False
@@ -75,13 +78,15 @@ class GameShell(cmd.Cmd):
         except Exception as e:
             print(e)
         else:
+            print("I retract ", self.game.last_argument)
             self._toggle_player()
 
     def postcmd(self, stop, line):
         if stop:
             return stop
         if self.current_player and self.current_player.is_bot:
-            self.current_player.next_move()  # How do I want this to work when they are both bots?
+            move = self.current_player.next_move()  # Hows this to work when both bots?
+            print("Computer played ",move.name)
             self._toggle_player()
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move

@@ -12,7 +12,9 @@ class Proponent:
 
     def next_move(self):
         "Bot plays the move"
-        self.has_to_be(Bot(self.game).next_move().name)  # Has to be name of bots next move.
+        proposed_move = Bot(self.game).next_move()
+        self.has_to_be(proposed_move.name)  # Has to be name of bots next move.
+        return proposed_move
 
 
 class Opponent:
@@ -42,6 +44,7 @@ class Opponent:
                 self.concede(proposed_move.name)
         else:
             self.could_be(proposed_move.name)
+        return proposed_move
 
 
 class Bot:

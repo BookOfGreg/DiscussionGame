@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from random import randint
 
 try:
     os.remove("./db.sqlite3")
@@ -72,7 +73,7 @@ class Argument:
         count = Argument.cursor.execute(
             "SELECT COUNT(*) FROM arguments").fetchone()
         arg = Argument.cursor.execute(
-            "SELECT * FROM arguments WHERE id=?", count).fetchone()
+            "SELECT * FROM arguments WHERE id=?", (randint(0, count[0]),)).fetchone()
         if arg is None:
             raise InvalidArgumentError("Argument does not exist")
         return Argument(arg[1], arg[2])
