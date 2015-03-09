@@ -86,7 +86,7 @@ class GameShell(cmd.Cmd):
             return stop
         if self.current_player and self.current_player.is_bot:
             move = self.current_player.next_move()  # Hows this to work when both bots?
-            print("Computer played ",move.name)
+            print("Computer played ", move.name)
             self._toggle_player()
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move

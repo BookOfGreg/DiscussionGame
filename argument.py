@@ -73,7 +73,7 @@ class Argument:
         count = Argument.cursor.execute(
             "SELECT COUNT(*) FROM arguments").fetchone()
         arg = Argument.cursor.execute(
-            "SELECT * FROM arguments WHERE id=?", (randint(0, count[0]),)).fetchone()
+            "SELECT * FROM arguments WHERE id=?", (randint(1, count[0]),)).fetchone()
         if arg is None:
             raise InvalidArgumentError("Argument does not exist")
         return Argument(arg[1], arg[2])
