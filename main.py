@@ -13,8 +13,9 @@ class GameShell(cmd.Cmd):
     proponent = None
     game = None
 
-    def do_new_game(self, file_path):  # , proponent_bot=False, Opponent_bot=False):
-        "Takes a file path to load argument into the game"
+    def do_new_game(self, arg):
+        "Takes a file path to load argument into the game, and proponent and opponent bot values"
+        file_path, proponent_bot, opponent_bot = arg.split()
         try:
             self.game = Game.from_file(file_path)
         except FileNotFoundError as e:
@@ -24,10 +25,11 @@ class GameShell(cmd.Cmd):
             self.proponent = None
             self.game = None
         else:
+            positives = ["True", "true", "yes", "Yes", "y", "Y"]
             self.proponent = Proponent(self.game)
-            self.proponent.is_bot = False
+            self.proponent.is_bot = proponent_bot in positives
             self.opponent = Opponent(self.game)
-            self.opponent.is_bot = False
+            self.opponent.is_bot = opponent_bot in positives
             self.current_player = self.proponent
             self.prompt = "Proponent: "
 
@@ -79,7 +81,8 @@ class GameShell(cmd.Cmd):
         if stop:
             return stop
         if self.current_player and self.current_player.is_bot:
-            self.current_player.next_move()
+            self.current_player.next_move()  # How do I want this to work when they are both bots?
+            self._toggle_player()
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move
 

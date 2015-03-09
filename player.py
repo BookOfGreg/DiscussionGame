@@ -50,6 +50,8 @@ class Bot:
         self.game = game
 
     def next_move(self):
+        if not self.game.last_argument:
+            return Argument.get_random()  # Proponents first move
         args = self.game.last_argument.minus()
         if not args:
             return self.game.last_argument

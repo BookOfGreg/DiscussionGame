@@ -3,6 +3,7 @@ Prototype implementation of Grounded Persuasion Game"""
 
 from main import *
 from game import *
+from player import *
 import unittest
 
 

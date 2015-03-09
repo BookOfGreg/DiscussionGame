@@ -68,6 +68,16 @@ class Argument:
         return arguments
 
     @classmethod
+    def get_random(cls):
+        count = Argument.cursor.execute(
+            "SELECT COUNT(*) FROM arguments").fetchone()
+        arg = Argument.cursor.execute(
+            "SELECT * FROM arguments WHERE id=?", count).fetchone()
+        if arg is None:
+            raise InvalidArgumentError("Argument does not exist")
+        return Argument(arg[1], arg[2])
+
+    @classmethod
     def _find_by_id(cls, argument_id):
         arg = Argument.cursor.execute(
                 "SELECT * FROM arguments WHERE id=?",
