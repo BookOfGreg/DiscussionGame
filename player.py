@@ -13,6 +13,8 @@ class Proponent:
     def next_move(self):
         "Bot plays the move"
         proposed_move = Bot(self.game).next_move()
+        if proposed_move in self.game.arguments:
+            raise GameOverError("Can't rule out your argument {0}".format(self.game.last_argument))
         self.has_to_be(proposed_move.name)  # Has to be name of bots next move.
         return proposed_move
 
@@ -42,6 +44,8 @@ class Opponent:
                 self.retract(proposed_move.name)
             else:
                 self.concede(proposed_move.name)
+                if proposed_move is self.game.main_claim:
+                    raise GameOverError("Main claim conceded")
         else:
             self.could_be(proposed_move.name)
         return proposed_move
@@ -63,3 +67,12 @@ class Bot:
         args.sort(key=lambda arg: arg.step if arg.step else 1000,
                   reverse=True)
         return args[0]
+
+
+class GameOverError(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)

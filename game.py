@@ -14,6 +14,7 @@ class Game:
         self.complete_attack_relations = list()
         self.kb = knowledge_base
         self.last_argument = None
+        self.main_claim = None  # Holds the first argument.
 
     @classmethod
     def from_file(self, path):
@@ -32,6 +33,8 @@ class Game:
             raise InvalidMoveError("Argument {0} does not attack last argument".format(argument))
         if self.last_argument is not None:
             self.attack_relations.append((argument, self.last_argument))
+        else:
+            self.main_claim = argument
         self.arguments.add(argument)
         self.last_argument = argument
         return self
