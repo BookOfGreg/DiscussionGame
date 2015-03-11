@@ -23,3 +23,9 @@ p = Proponent(g)
 o = Opponent(g)
 p.has_to_be("b")
 o.concede("d")
+
+# gotta redo tests
+# Look at splitting KB again in scenario
+#   UI can enforce the strict game but game itself can be more flexible if it wants.
+#   Careful about locking in Sqlite, keep it to Argument.
+#   Look at my changes to Labeling, why did changing Minus need to know if args were in or not??
