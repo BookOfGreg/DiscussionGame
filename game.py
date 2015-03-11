@@ -29,7 +29,7 @@ class Game:
 
     def add(self, argument):
         if not self.can_argue_with(argument):
-            raise InvalidMoveError("My argument does not attack last argument")
+            raise InvalidMoveError("Argument {0} does not attack last argument".format(argument))
         if self.last_argument is not None:
             self.attack_relations.append((argument, self.last_argument))
         self.arguments.add(argument)

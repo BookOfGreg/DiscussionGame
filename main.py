@@ -84,10 +84,11 @@ class GameShell(cmd.Cmd):
     def postcmd(self, stop, line):
         if stop:
             return stop
-        if self.current_player and self.current_player.is_bot:
+        while self.current_player and self.current_player.is_bot:
             move = self.current_player.next_move()  # Hows this to work when both bots?
-            print("Computer played ", move.name)
+            print("Computer {0}played {1}".format(self.prompt, move.name))
             self._toggle_player()
+            print(self.prompt, " goes next")
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move
 
