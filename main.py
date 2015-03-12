@@ -1,12 +1,20 @@
 import cmd
 from game import Game
-from player import Proponent, Opponent
+from player import Proponent, Opponent  # , GameOverError  # For later.
 
 
 class GameShell(cmd.Cmd):
     intro = """This is the grounded persuasion game. Commands:
-    new_game (file_path, proponent is a bot, opponent is a bot) - to start a game
-    quit, close, exit, stop - to leave"""
+    'new_game [file_path] [bot proponent] [bot opponent] [claim]' - to start a game
+            -bot options are true/yes/y for bot. Other or blank for human player.
+            -claim is the label of the argument you want to be main claim if the
+            proponent is a bot. This can be blank for random.
+    'quit', 'close', 'exit', 'stop' - to leave
+In game commands. You can also use new_game and quit anytime.
+    'has_to_be [arg]' - as proponent.
+    'could_be [arg]' - as opponent.
+    'retract [arg]' - as opponent.
+    'concede [arg]' - as opponent."""
     prompt = "Cmd: "  # Proponent always goes first
     current_player = None
     opponent = None
@@ -15,7 +23,7 @@ class GameShell(cmd.Cmd):
 
     def do_new_game(self, arg):
         "Takes a file path to load argument into the game, and proponent and opponent bot values"
-        file_path, proponent_bot, opponent_bot = (arg.split() + [False, False])[:3]
+        file_path, proponent_bot, opponent_bot, claim = (arg.split() + [False, False, None])[:4]
         try:
             self.game = Game.from_file(file_path)
         except FileNotFoundError as e:
@@ -31,7 +39,12 @@ class GameShell(cmd.Cmd):
             self.opponent = Opponent(self.game)
             self.opponent.is_bot = opponent_bot in positives
             self.current_player = self.proponent
-            self.prompt = "Proponent: "
+            if claim:
+                print("Proponent: has_to_be ", claim)
+                self.proponent.has_to_be(claim)
+                self._toggle_player()
+            else:
+                self.prompt = "Proponent: "
 
     def do_has_to_be(self, argument):
         "When it is the Proponents turn, allows player to put forward an argument"
@@ -85,12 +98,12 @@ class GameShell(cmd.Cmd):
         if stop:
             return stop
         while self.current_player and self.current_player.is_bot:
-            move = self.current_player.next_move()  # Hows this to work when both bots?
-            print("Computer {0}played {1}".format(self.prompt, move.name))
-            self._toggle_player()
-            print(self.prompt, " goes next")
+            action, move = self.current_player.next_move()  # Hows this to work when both bots?
+            print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
+            if action in ("could_be", "has_to_be"):
+                self._toggle_player()
 
-    # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move
+    # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move?
 
     def do_quit(self, _):
         return True  # True from any do_ method will tell the game to quit.
