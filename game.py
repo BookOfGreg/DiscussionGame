@@ -15,6 +15,7 @@ class Game:
         self.kb = knowledge_base
         self.last_argument = None
         self.main_claim = None  # Holds the first argument.
+        self.retractable_args = None
 
     @classmethod
     def from_file(self, path):
@@ -29,8 +30,11 @@ class Game:
         return Game(kb)
 
     def add(self, argument):
-        if not self.can_argue_with(argument):
+        if not self._can_argue_with(argument):
             raise InvalidMoveError("Argument {0} does not attack last argument".format(argument))
+        if self.retractable_args:
+            raise InvalidMoveError(
+                "Must retract arguments if available.")
         if self.last_argument is not None:
             self.attack_relations.append((argument, self.last_argument))
         else:
@@ -43,20 +47,25 @@ class Game:
         if argument != self.last_argument:
             raise InvalidMoveError(
                 "Cannot concede anything but the last argument.")
+        if self.retractable_args:
+            raise InvalidMoveError(
+                "Must retract arguments if available. {0}".format(self.retractable_args))
         for attacker, target in self.attack_relations:
             if target == argument:  # Allows person to concede early.
                 raise InvalidMoveError(
                     "An attacker of this argument is not out.")
+        self.retractable_args = argument.plus()
         return self._remove(argument)
 
     def retract(self, argument):
         for attacker, target in self.complete_attack_relations:
             if target == argument:
+                self.retractable_args.remove(argument)
                 return self._remove(argument)
         raise InvalidMoveError(
             "There is no attacker of this argument that is in.")
 
-    def can_argue_with(self, argument):
+    def _can_argue_with(self, argument):
         if self.last_argument is None:  # First move
             return True
         if argument in self.complete_arguments:

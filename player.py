@@ -66,6 +66,8 @@ class Bot:
     def next_move(self):
         if not self.game.last_argument:
             return Argument.get_random()  # Proponents first move
+        if self.game.retractable_args:
+            return self.game.retractable_args.pop()
         args = self.game.last_argument.minus()
         args = [a for a in args if a not in self.game.complete_arguments]
         if not args:
