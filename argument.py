@@ -65,7 +65,7 @@ class Argument:
         arguments = list()
         for arg in Argument.cursor.execute(
                 "SELECT * FROM arguments").fetchall():
-            arguments.append(Argument(arg[1], arg[2]))
+            arguments.append(Argument(arg[1], arg[2], arg[3]))
         return arguments
 
     @classmethod
@@ -76,16 +76,16 @@ class Argument:
             "SELECT * FROM arguments WHERE id=?", (randint(1, count[0]),)).fetchone()
         if arg is None:
             raise InvalidArgumentError("Argument does not exist")
-        return Argument(arg[1], arg[2])
+        return Argument(arg[1], arg[2], arg[3])
 
     @classmethod
     def _find_by_id(cls, argument_id):
         arg = Argument.cursor.execute(
                 "SELECT * FROM arguments WHERE id=?",
-                argument_id).fetchone()
+                (argument_id,)).fetchone()
         if arg is None:
             raise InvalidArgumentError("Argument does not exist")
-        return Argument(arg[1], arg[2])
+        return Argument(arg[1], arg[2], arg[3])
 
     @classmethod
     def find(cls, argument_name):

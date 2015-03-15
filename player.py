@@ -67,9 +67,9 @@ class Bot:
         if not self.game.last_argument:
             return Argument.get_random()  # Proponents first move
         args = self.game.last_argument.minus()
+        args = [a for a in args if a not in self.game.complete_arguments]
         if not args:
             return self.game.last_argument
-        args = [a for a in args if a not in self.game.complete_arguments]
         args.sort(key=lambda arg: arg.step if arg.step else 1000,
                   reverse=True)
         return args[0]
