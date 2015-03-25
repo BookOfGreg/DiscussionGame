@@ -15,6 +15,7 @@ class Array
 end
 
 class DiGraph
+  attr_accessor :nodes, :attacks
   def initialize nodes
     @nodes = nodes
     @attacks = []
@@ -50,6 +51,7 @@ def balanced_tree_builder names
   while unused_leaves.any?
     target = next_root.dequeue
     leaf = unused_leaves.dequeue
+    next_root.enqueue leaf
     graph.add_attack leaf, target
   end
   return graph
