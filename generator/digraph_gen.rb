@@ -22,7 +22,7 @@ class DiGraph
   end
 
   def add_attack attacker, target
-    @attacks.enqueue [attacker, target]
+    @attacks.enqueue [attacker, target] if attacker
   end
 
   def save_as filename
@@ -57,6 +57,22 @@ def balanced_tree_builder names, branches_count
   return graph
 end
 
+def worst_case_tree names, branches_count
+  graph = DiGraph.new(names)
+  next_root = [names.first] * branches_count
+  _, *unused_leaves = names.clone
+
+  while unused_leaves.any?
+    target = next_root.dequeue
+    leaf = unused_leaves.dequeue
+    rebut_leaf = unused_leaves.dequeue
+    graph.add_attack leaf, target
+    graph.add_attack rebut_leaf, leaf
+    branches_count.times { next_root.enqueue rebut_leaf }
+  end
+  return graph
+end
+
 puts "use: ruby digraph_gen.rb nodes type"
 puts "type: one of x y z"
 desired_node_count = ARGV[0].to_i
@@ -65,3 +81,5 @@ branches_count = ARGV[1].to_i
 names = generate_node_names desired_node_count
 graph = balanced_tree_builder names, branches_count
 graph.save_as "balanced_tree"
+graph = worst_case_tree names, branches_count
+graph.save_as "worst_case_tree"
