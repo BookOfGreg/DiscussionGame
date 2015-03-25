@@ -43,15 +43,15 @@ def generate_node_names node_count
   return names
 end
 
-def balanced_tree_builder names
+def balanced_tree_builder names, branches_count
   graph = DiGraph.new(names)
-  next_root = [names.first]
+  next_root = [names.first] * branches_count
   _, *unused_leaves = names.clone
 
   while unused_leaves.any?
     target = next_root.dequeue
     leaf = unused_leaves.dequeue
-    next_root.enqueue leaf
+    branches_count.times { next_root.enqueue leaf }
     graph.add_attack leaf, target
   end
   return graph
@@ -63,5 +63,5 @@ desired_node_count = ARGV[0].to_i
 branches_count = ARGV[1].to_i
 
 names = generate_node_names desired_node_count
-graph = balanced_tree_builder names
+graph = balanced_tree_builder names, branches_count
 graph.save_as "balanced_tree"
