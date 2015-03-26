@@ -12,6 +12,10 @@ class Array
   def tail
     self[1..-1]
   end
+
+  def sample!
+    delete_at rand length
+  end
 end
 
 class DiGraph
@@ -57,7 +61,21 @@ def balanced_tree_builder names, branches_count
   return graph
 end
 
-def worst_case_tree names, branches_count
+def unbalanced_tree_builder names, branches_count
+  graph = DiGraph.new(names)
+  next_root = [names.first] * branches_count
+  _, *unused_leaves = names.clone
+
+  while unused_leaves.any?
+    target = next_root.sample!
+    leaf = unused_leaves.dequeue
+    branches_count.times { next_root.enqueue leaf }
+    graph.add_attack leaf, target
+  end
+  return graph
+end
+
+def worst_case_tree_builder names, branches_count
   graph = DiGraph.new(names)
   next_root = [names.first] * branches_count
   _, *unused_leaves = names.clone
@@ -73,6 +91,20 @@ def worst_case_tree names, branches_count
   return graph
 end
 
+def looping_graph_builder names
+  graph = DiGraph.new(names)
+  next_root = [names.first]
+  _, *unused_leaves = names.clone << names.first
+
+  while unused_leaves.any?
+    target = next_root.dequeue
+    leaf = unused_leaves.dequeue
+    next_root.enqueue leaf
+    graph.add_attack leaf, target
+  end
+  return graph
+end
+
 puts "use: ruby digraph_gen.rb nodes type"
 puts "type: one of x y z"
 desired_node_count = ARGV[0].to_i
@@ -81,5 +113,9 @@ branches_count = ARGV[1].to_i
 names = generate_node_names desired_node_count
 graph = balanced_tree_builder names, branches_count
 graph.save_as "balanced_tree"
-graph = worst_case_tree names, branches_count
+graph = worst_case_tree_builder names, branches_count
 graph.save_as "worst_case_tree"
+graph = looping_graph_builder names
+graph.save_as "looping_graph"
+graph = unbalanced_tree_builder names, branches_count
+graph.save_as "unbalanced_tree"
