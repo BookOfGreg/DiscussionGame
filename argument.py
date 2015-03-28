@@ -34,7 +34,7 @@ class Argument:
                               FROM attacks JOIN arguments
                               ON attacker_id=arguments.id
                               AND arguments.name=?""",
-                                    self.name).fetchall()))
+                                    (self.name,)).fetchall()))
 
     def minus(self):
         return set(self._to_args(
@@ -42,7 +42,7 @@ class Argument:
                               FROM attacks JOIN arguments
                               ON target_id=arguments.id
                               AND arguments.name=?""",
-                                    self.name).fetchall()))
+                                    (self.name,)).fetchall()))
 
     def _to_args(self, relations):
         args = list()
@@ -91,7 +91,7 @@ class Argument:
     def find(cls, argument_name):
         arg = Argument.cursor.execute(
                 "SELECT * FROM arguments WHERE name=?",
-                argument_name).fetchone()
+                (argument_name,)).fetchone()
         if arg is None:
             raise InvalidArgumentError("Argument does not exist")
         return Argument(arg[1], arg[2], arg[3])
@@ -114,7 +114,7 @@ class Argument:
         Argument._reset_db()
         for arg in arguments:
             Argument.cursor.execute(
-                "INSERT INTO arguments (name, label) VALUES(?, 'Undec')", arg)
+                "INSERT INTO arguments (name, label) VALUES(?, 'Undec')", (arg,))
         for attacker, target in relations:
             Argument.cursor.execute(
                 """INSERT INTO attacks (attacker_id, target_id)
