@@ -1,4 +1,5 @@
 from argument import Argument
+import random
 
 
 class Proponent:
@@ -67,7 +68,7 @@ class Bot:
         if not self.game.last_argument:
             return Argument.get_random()  # Proponents first move
         if self.game.retractable_args:
-            return self.game.retractable_args.pop()
+            return random.sample(self.game.retractable_args, 1)[0]  # fucking python
         args = self.game.last_argument.minus()
         args = [a for a in args if a not in self.game.complete_arguments]
         if not args:

@@ -54,7 +54,8 @@ class Game:
             if target == argument:  # Allows person to concede early.
                 raise InvalidMoveError(
                     "An attacker of this argument is not out.")
-        self.retractable_args = argument.plus()
+        # import pdb; pdb.set_trace()
+        self.retractable_args = argument.plus()  # Get from game.args instead
         return self._remove(argument)
 
     def retract(self, argument):

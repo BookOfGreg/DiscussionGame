@@ -1,6 +1,7 @@
+import time
 import cmd
 from game import Game
-from player import Proponent, Opponent  # , GameOverError  # For later.
+from player import Proponent, Opponent, GameOverError  # For later.
 
 
 class GameShell(cmd.Cmd):
@@ -25,7 +26,9 @@ In game commands. You can also use new_game and quit anytime.
         "Takes a file path to load argument into the game, and proponent and opponent bot values"
         file_path, proponent_bot, opponent_bot, claim = (arg.split() + [False, False, None])[:4]
         try:
+            print("Before load graph", time.process_time())
             self.game = Game.from_file(file_path)
+            print("After load graph", time.process_time())
         except FileNotFoundError as e:
             print(e)  # Reset all values to none on failure
             self.current_player = None
@@ -98,10 +101,14 @@ In game commands. You can also use new_game and quit anytime.
         if stop:
             return stop
         while self.current_player and self.current_player.is_bot:
-            action, move = self.current_player.next_move()  # Hows this to work when both bots?
-            print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
-            if action in ("could_be", "has_to_be"):
-                self._toggle_player()
+            try:
+                action, move = self.current_player.next_move()  # Hows this to work when both bots?
+                print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
+                if action in ("could_be", "has_to_be"):
+                    self._toggle_player()
+            except GameOverError as e:
+                print(e)
+                return True
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move?
 
@@ -121,4 +128,8 @@ In game commands. You can also use new_game and quit anytime.
             self.prompt = "Proponent: "
 
 if __name__ == "__main__":
+    # if no sys.argv
     GameShell().cmdloop()
+    print("After run", time.process_time())
+    # else
+    # just run contents of postcmd.

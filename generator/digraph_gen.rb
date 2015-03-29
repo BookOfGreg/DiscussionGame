@@ -105,17 +105,27 @@ def looping_graph_builder names
   return graph
 end
 
-puts "use: ruby digraph_gen.rb nodes type"
-puts "type: one of x y z"
-desired_node_count = ARGV[0].to_i
-branches_count = ARGV[1].to_i
+# puts "use: ruby digraph_gen.rb nodes type"
+# puts "type: one of x y z"
+# desired_node_count = ARGV[0].to_i
+# branches_count = ARGV[1].to_i
 
-names = generate_node_names desired_node_count
-graph = balanced_tree_builder names, branches_count
-graph.save_as "balanced_tree"
-graph = worst_case_tree_builder names, branches_count
-graph.save_as "worst_case_tree"
-graph = looping_graph_builder names
-graph.save_as "looping_graph"
-graph = unbalanced_tree_builder names, branches_count
-graph.save_as "unbalanced_tree"
+# names = generate_node_names desired_node_count
+# graph = balanced_tree_builder names, branches_count
+# graph.save_as "balanced_tree"
+# graph = worst_case_tree_builder names, branches_count
+# graph.save_as "worst_case_tree"
+# graph = looping_graph_builder names
+# graph.save_as "looping_graph"
+# graph = unbalanced_tree_builder names, branches_count
+# graph.save_as "unbalanced_tree"
+
+(9999..999999).step(10000) do |node_count|
+  names = generate_node_names node_count
+  graph = looping_graph_builder names
+  graph.save_as "looping_graph_#{node_count}"
+  # graph = balanced_tree_builder names, 2
+  # graph.save_as "balanced_tree_#{node_count}"
+  # graph = worst_case_tree_builder names, 2
+  # graph.save_as "worst_case_tree_#{node_count}"
+end
