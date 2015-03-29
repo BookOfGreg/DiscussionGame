@@ -1,5 +1,6 @@
 from argument import Argument
 from labelling import Labelling
+import time
 
 
 class Game:
@@ -20,6 +21,7 @@ class Game:
     @classmethod
     def from_file(self, path):
         kb = Argument.from_file(path)
+        print("Loaded into DB, Labelling.", time.process_time())
         Argument.set_labels(Labelling.grounded(kb))
         return Game(kb)
 
