@@ -30,7 +30,7 @@ class DiGraph
   end
 
   def save_as filename
-    File.open(filename, "w") do |f|
+    File.open("../results/#{filename}", "w") do |f|
       f.puts @nodes.join " "
       @attacks.each do |att|
         f.puts att.join " "
@@ -45,6 +45,33 @@ def generate_node_names node_count
     names.enqueue i.to_s
   end
   return names
+end
+
+def fully_connected_builder names
+  graph = DiGraph.new(names)
+  names.each do |target|
+    names.each do |attacker|
+      graph.add_attack attacker, target
+    end
+  end
+  return graph
+end
+
+def random_graph_builder names
+  graph = DiGraph.new(names)
+  name_count = names.length
+  max_edge_count = (name_count*(name_count-1))/2 # fully connected num
+  rng = Random.new
+  edge_count = rng.rand(name_count..edge_count)
+  edge_count.times do
+    attacker = names.sample
+    loop do
+      target = names.sample
+      break if target != attacker
+    end
+    graph.add_attack attacker, target
+  end
+  return graph
 end
 
 def balanced_tree_builder names, branches_count

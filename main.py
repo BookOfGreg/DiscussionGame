@@ -1,5 +1,6 @@
 import time
 import cmd
+import sys
 from game import Game
 from player import Proponent, Opponent, GameOverError  # For later.
 
@@ -109,6 +110,9 @@ In game commands. You can also use new_game and quit anytime.
             except GameOverError as e:
                 print(e)
                 return True
+        print("Arguments that attack {0} are {1}",
+              self.game.last_argument,
+              self.game.last_argument.minus())
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move?
 
@@ -128,8 +132,11 @@ In game commands. You can also use new_game and quit anytime.
             self.prompt = "Proponent: "
 
 if __name__ == "__main__":
-    # if no sys.argv
-    GameShell().cmdloop()
+    if len(sys.argv) == 3:
+        gs = GameShell()
+        line = "new_game {0} y y {1}".format(sys.argv[1], sys.argv[2])
+        gs.onecmd(line)
+        gs.postcmd(False, line)
+    else:
+        GameShell().cmdloop()
     print("After run", time.process_time())
-    # else
-    # just run contents of postcmd.
