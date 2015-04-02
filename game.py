@@ -22,13 +22,13 @@ class Game:
     def from_file(self, path):
         kb = Argument.from_file(path)
         print("Loaded into DB, Labelling.", time.process_time())
-        Argument.set_labels(Labelling.grounded(kb))
+        Labelling.grounded(kb)
         return Game(kb)
 
     @classmethod
     def from_af(cls, arguments, attack_relations):
         kb = Argument.from_af(arguments, attack_relations)
-        Argument.set_labels(Labelling.grounded(kb))
+        Labelling.grounded(kb)
         return Game(kb)
 
     def add(self, argument):

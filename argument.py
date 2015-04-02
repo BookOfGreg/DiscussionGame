@@ -1,13 +1,14 @@
 import sqlite3
 import os
+import operator
 from random import randint
 
 try:
-    os.remove("./db.sqlite3")
+    os.remove("./db2.sqlite3")
 except OSError:
     pass
 
-DB_PATH = "./db.sqlite3"
+DB_PATH = "./db2.sqlite3"
 
 
 class Argument:
@@ -60,11 +61,39 @@ class Argument:
     def __repr__(self):
         return "Arg(%s)" % (self.name)
 
+    def is_out(self):
+        return self.label == "Out"
+
+    def is_in(self):
+        return self.label == "In"
+
+    def get_name(self):
+        return self.name
+
+    @classmethod
+    def set_all_labels(cls, arguments, labelling, step):
+        argument_names = list(map(operator.methodcaller('get_name'), arguments))
+        for name_batch in batch(argument_names, 900):
+            Argument.cursor.execute(
+                "UPDATE arguments SET label=?, step=? WHERE name IN ({seq})".format(
+                    seq=','.join(['?']*len(name_batch))),
+                    tuple([labelling, step] + name_batch))
+
     @classmethod
     def get_arguments(cls):
         arguments = list()
         for arg in Argument.cursor.execute(
                 "SELECT * FROM arguments").fetchall():
+            arguments.append(Argument(arg[1], arg[2], arg[3]))
+        return arguments
+
+    @classmethod
+    def get_unattacked_arguments(cls):
+        arguments = list()
+        for arg in Argument.cursor.execute(
+                """SELECT * FROM arguments
+                WHERE id NOT IN
+                (SELECT target_id FROM attacks)""").fetchall():
             arguments.append(Argument(arg[1], arg[2], arg[3]))
         return arguments
 
@@ -124,13 +153,6 @@ class Argument:
         return Argument
 
     @classmethod
-    def set_labels(cls, labelling):
-        for arg in labelling.IN:
-            arg.set_label("In", labelling.steps[arg])
-        for arg in labelling.OUT:
-            arg.set_label("Out", labelling.steps[arg])
-
-    @classmethod
     def _reset_db(cls):
         Argument._delete_db()
         Argument.conn = Argument._create_db()
@@ -168,3 +190,9 @@ class InvalidArgumentError(Exception):
 
     def __str__(self):
         return repr(self.value)
+
+
+def batch(iterable, n=1):
+    l = len(iterable)
+    for item in range(0, l, n):
+        yield iterable[item:min(item+n, l)]

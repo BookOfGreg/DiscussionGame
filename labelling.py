@@ -34,6 +34,7 @@
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 """
+from argument import Argument
 
 
 class Labelling:
@@ -69,11 +70,9 @@ class Labelling:
         while True:
             counter += 1
             legally_IN = set([a for a in self.UNDEC if self.isLegallyIN(a)])
-            for arg in legally_IN:
-                arg.set_label("In", counter)
+            Argument.set_all_labels(legally_IN, "In", counter)
             legally_OUT = set([a for a in self.UNDEC if self.isLegallyOUT(a)])
-            for arg in legally_OUT:
-                arg.set_label("Out", counter)
+            Argument.set_all_labels(legally_OUT, "Out", counter)
             if not legally_IN and not legally_OUT:
                 for a in self.UNDEC:
                     if a not in self.steps:

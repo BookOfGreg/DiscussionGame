@@ -104,6 +104,7 @@ In game commands. You can also use new_game and quit anytime.
         while self.current_player and self.current_player.is_bot:
             try:
                 action, move = self.current_player.next_move()  # Hows this to work when both bots?
+                # import pdb; pdb.set_trace()
                 print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
                 if action in ("could_be", "has_to_be"):
                     self._toggle_player()

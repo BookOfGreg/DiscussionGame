@@ -73,8 +73,7 @@ class Bot:
         args = [a for a in args if a not in self.game.complete_arguments]
         if not args:
             return self.game.last_argument
-        args.sort(key=lambda arg: arg.step if arg.step else 1000,
-                  reverse=True)
+        args.sort(key=lambda arg: arg.step if arg.step else 1000)
         return args[0]
 
 
