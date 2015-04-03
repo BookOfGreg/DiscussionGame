@@ -70,7 +70,7 @@ class Bot:
         if self.game.retractable_args:
             return random.sample(self.game.retractable_args, 1)[0]  # fucking python
         args = self.game.last_argument.minus()
-        args = [a for a in args if a not in self.game.complete_arguments]
+        args = [a for a in args if a not in self.game.complete_arguments]  # CHANGE THIS. ONLY IN ARGS FOR PROP
         if not args:
             return self.game.last_argument
         args.sort(key=lambda arg: arg.step if arg.step else 1000)
