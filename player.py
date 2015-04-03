@@ -15,7 +15,9 @@ class Proponent:
         "Bot plays the move"
 
         if not self.game.last_argument:
-            return "has_to_be", Argument.get_random()  # Proponents first move
+            proposed_arg = Argument.get_random()
+            self.has_to_be(proposed_arg)
+            return "has_to_be", proposed_arg  # Proponents first move
         args = self.game.last_argument.minus()
         args = [a for a in args if (a not in self.game.complete_arguments and
                                     a not in self.game.arguments and
@@ -23,7 +25,9 @@ class Proponent:
         if not args:
             raise GameOverError("Can't rule out your argument {0}".format(self.game.last_argument))
         args.sort(key=lambda arg: arg.step if arg.step else 1000)
-        return "has_to_be", args[0]
+        proposed_arg = args[0]
+        self.has_to_be(proposed_arg.name)
+        return "has_to_be", proposed_arg
 
 
 class Opponent:
@@ -47,15 +51,21 @@ class Opponent:
         "Bot plays the move"
 
         if self.game.retractable_args:
-            return "retract", random.sample(self.game.retractable_args, 1)[0]
+            proposed_arg = random.sample(self.game.retractable_args, 1)[0]
+            self.retract(proposed_arg.name)
+            return "retract", proposed_arg
         args = self.game.last_argument.minus()
         args = [a for a in args if a not in self.game.complete_arguments]
         if not args:
             if self.game.last_argument is self.game.main_claim:
                 raise GameOverError("Main claim conceded")
-            return "concede", self.game.last_argument
+            proposed_arg = self.game.last_argument
+            self.concede(proposed_arg.name)
+            return "concede", proposed_arg
         args.sort(key=lambda arg: arg.step if arg.step else 1000)
-        return "could_be", args[0]
+        proposed_arg = args[0]
+        self.could_be(proposed_arg.name)
+        return "could_be", proposed_arg
 
 
 class GameOverError(Exception):
