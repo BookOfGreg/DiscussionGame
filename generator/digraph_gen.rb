@@ -62,9 +62,10 @@ def random_graph_builder names
   name_count = names.length
   max_edge_count = (name_count*(name_count-1))/2 # fully connected num
   rng = Random.new
-  edge_count = rng.rand(name_count..edge_count)
+  edge_count = rng.rand(name_count..max_edge_count)
   edge_count.times do
     attacker = names.sample
+    target = nil
     loop do
       target = names.sample
       break if target != attacker
@@ -147,12 +148,18 @@ end
 # graph = unbalanced_tree_builder names, branches_count
 # graph.save_as "unbalanced_tree"
 
-(9999..999999).step(10000) do |node_count|
+(4999..199999).step(5000) do |node_count|
   names = generate_node_names node_count
   graph = looping_graph_builder names
   graph.save_as "looping_graph_#{node_count}"
-  # graph = balanced_tree_builder names, 2
-  # graph.save_as "balanced_tree_#{node_count}"
-  # graph = worst_case_tree_builder names, 2
-  # graph.save_as "worst_case_tree_#{node_count}"
+  graph = balanced_tree_builder names, 2
+  graph.save_as "balanced_binary_tree_#{node_count}"
+  graph = balanced_tree_builder names, 20
+  graph.save_as "balanced_20_tree_#{node_count}"
+  graph = worst_case_tree_builder names, 2
+  graph.save_as "worst_case_tree_#{node_count}"
+  # graph = random_graph_builder names
+  # graph.save_as "random_graph_#{node_count}"
+  # graph = fully_connected_builder names
+  # graph.save_as "fully_connected_graph_#{node_count}"
 end

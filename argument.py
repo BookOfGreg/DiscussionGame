@@ -146,10 +146,13 @@ class Argument:
                 "INSERT INTO arguments (name, label) VALUES(?, 'Undec')", (arg,))
         for attacker, target in relations:
             Argument.cursor.execute(
-                """INSERT INTO attacks (attacker_id, target_id)
-                WITH attacker AS (SELECT id FROM arguments WHERE name=?),
-                target AS (SELECT id FROM arguments WHERE name=?)
-                SELECT * from attacker, target""", (attacker, target))
+                """INSERT INTO attacks(attacker_id, target_id)
+                SELECT * FROM (SELECT id FROM arguments WHERE name=?) attacker,
+                (SELECT id FROM arguments WHERE name=?) target""", (attacker, target))
+                #"""INSERT INTO attacks (attacker_id, target_id)
+                #WITH attacker AS (SELECT id FROM arguments WHERE name=?),
+                #target AS (SELECT id FROM arguments WHERE name=?)
+                #SELECT * from attacker, target""", (attacker, target))
         return Argument
 
     @classmethod

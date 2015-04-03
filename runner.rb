@@ -1,16 +1,19 @@
 #!/usr/bin/env ruby
 
-# Dir.foreach("./graphs") do |file_name|
-["balanced_tree_9999",
- "balanced_tree_19999",
- "balanced_tree_29999",
- "balanced_tree_39999",
- "balanced_tree_49999",
- "balanced_tree_59999",
- "balanced_tree_69999",
- "balanced_tree_79999",
- "balanced_tree_89999",
- "balanced_tree_99999"].each do |file_name|
+#Dir.foreach("./graphs") do |file_name|
+[
+# "balanced_binary_tree_9999",
+# "balanced_20_tree_9999",
+# "worst_case_tree_9999",
+# "looping_graph_9999",
+# "balanced_binary_tree_49999",
+# "balanced_20_tree_49999",
+# "looping_graph_49999",
+# "worst_case_tree_49999",
+ "balanced_binary_tree_4999",
+ "balanced_20_tree_4999",
+ "looping_graph_4999",
+ "worst_case_tree_4999"].each do |file_name|
   puts file_name
   next if file_name == '.' or file_name == '..'
   30.times do |num|
