@@ -113,7 +113,7 @@ In game commands. You can also use new_game and quit anytime.
                 return True
         print("Arguments that attack {0} are {1}",
               self.game.last_argument,
-              self.game.last_argument.minus())
+              self.game.last_argument.minus())  # bug here when retracting
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move?
 
