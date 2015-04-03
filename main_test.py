@@ -21,8 +21,8 @@ target = last
 class TestKnowledgeBaseLoaders(unittest.TestCase):
 
     def test_abstract_loader(self):
-        game = Game.from_file("./graphs/example_kb_2.txt")
-        self.assertEqual(len(game.kb.get_arguments()), 4)
+        game = Game.from_file("./graphs/example")
+        self.assertEqual(len(game.kb.get_arguments()), 8)
         # There exists an argument that has 2 attackers assertion.
 
 
