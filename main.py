@@ -3,6 +3,7 @@ import time
 import cmd
 import sys
 import traceback
+import operator
 from game import Game
 from player import Proponent, Opponent, GameOverError  # For later.
 
@@ -113,6 +114,8 @@ In game commands. You can also use new_game and quit anytime.
         try:
             while self.current_player and self.current_player.is_bot:
                 action, move = self.current_player.next_move()  # Hows this to work when both bots?
+                operator.methodcaller(action, move.name)(self.current_player)
+                # Fuctional in Python is bad.
                 print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
                 if action in ("could_be", "has_to_be"):
                     self._toggle_player()
