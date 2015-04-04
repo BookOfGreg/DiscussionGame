@@ -1,6 +1,8 @@
+# import pdb; pdb.set_trace()
 import time
 import cmd
 import sys
+import traceback
 from game import Game
 from player import Proponent, Opponent, GameOverError  # For later.
 
@@ -56,8 +58,8 @@ In game commands. You can also use new_game and quit anytime.
             return False
         try:
             self.proponent.has_to_be(argument)
-        except Exception as e:
-            print(e)
+        except Exception:
+            traceback.print_exc(file=sys.stdout)
         else:
             print("It has to be ", argument)
             self._toggle_player()
@@ -68,8 +70,8 @@ In game commands. You can also use new_game and quit anytime.
             return False
         try:
             self.opponent.could_be(argument)
-        except Exception as e:
-            print(e)
+        except Exception:
+            traceback.print_exc(file=sys.stdout)
         else:
             print("It could be ", argument)
             self._toggle_player()
@@ -78,42 +80,51 @@ In game commands. You can also use new_game and quit anytime.
         "When it is the Opponents turn, allows player to concede an argument"
         if self.current_player is not self.opponent:
             return False
+        conceding_arg = self.game.last_argument.name
         try:
-            self.opponent.concede(self.game.last_argument)
-        except Exception as e:
-            print(e)
+            self.opponent.concede(conceding_arg)
+        except Exception:
+            traceback.print_exc(file=sys.stdout)
         else:
-            print("I concede ", self.game.last_argument)
-            self._toggle_player()
+            print("I concede ", conceding_arg)
 
     def do_retract(self, arg):
         "When it is the Opponents turn, allows player to retract an argument"
         if self.current_player is not self.opponent:
             return False
+        retracting_arg = self.game.last_argument.name
         try:
-            self.opponent.retract(self.game.last_argument)
-        except Exception as e:
-            print(e)
+            self.opponent.retract(retracting_arg)
+        except Exception:
+            traceback.print_exc(file=sys.stdout)
         else:
-            print("I retract ", self.game.last_argument)
-            self._toggle_player()
+            print("I retract ", retracting_arg)
+
+    def do_current_state(self, arg):
+        print("Last Arg: {0}".format(self.game.last_argument))
+        print("In Progress Args: {0}".format(self.game.arguments))
+        print("Retractable Args: {0}".format(self.game.retractable_args))
+        print("Completed Args: {0}".format(self.game.complete_arguments))
+        print("Main Claim: {0}".format(self.game.main_claim))
 
     def postcmd(self, stop, line):
         if stop:
             return stop
-        while self.current_player and self.current_player.is_bot:
-            try:
+        try:
+            while self.current_player and self.current_player.is_bot:
                 action, move = self.current_player.next_move()  # Hows this to work when both bots?
-                # import pdb; pdb.set_trace()
                 print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
                 if action in ("could_be", "has_to_be"):
                     self._toggle_player()
-            except GameOverError as e:
-                print(e)
-                return True
-        print("Arguments that attack {0} are {1}",
-              self.game.last_argument,
-              self.game.last_argument.minus())  # bug here when retracting
+        except GameOverError as e:
+            print(e)
+            return True
+        try:
+            print("Arguments that attack {0} are {1}".format(
+                  self.game.last_argument,
+                  self.game.last_argument.minus()))  # bug here when retracting
+        except AttributeError as e:
+            return False
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move?
 
