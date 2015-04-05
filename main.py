@@ -5,7 +5,6 @@ import sys
 import traceback
 import operator
 from game import Game
-from player import Proponent, Opponent, GameOverError  # For later.
 
 
 class GameShell(cmd.Cmd):
@@ -20,11 +19,7 @@ In game commands. You can also use new_game and quit anytime.
     'could_be [arg]' - as opponent.
     'retract [arg]' - as opponent.
     'concede [arg]' - as opponent."""
-    prompt = "Cmd: "  # Proponent always goes first
-    current_player = None
-    opponent = None
-    proponent = None
-    game = None
+    prompt = "Cmd: "
 
     def do_new_game(self, arg):
         "Takes a file path to load argument into the game, and proponent and opponent bot values"
@@ -35,67 +30,56 @@ In game commands. You can also use new_game and quit anytime.
             print("After load graph", time.process_time())
         except FileNotFoundError as e:
             print(e)  # Reset all values to none on failure
-            self.current_player = None
-            self.opponent = None
-            self.proponent = None
             self.game = None
         else:
             positives = ["True", "true", "yes", "Yes", "y", "Y"]
-            self.proponent = Proponent(self.game)
-            self.proponent.is_bot = proponent_bot in positives
-            self.opponent = Opponent(self.game)
-            self.opponent.is_bot = opponent_bot in positives
-            self.current_player = self.proponent
+            self.game.proponent.is_bot = proponent_bot in positives
+            self.game.opponent.is_bot = opponent_bot in positives
             if claim:
                 print("Proponent: has_to_be ", claim)
-                self.proponent.has_to_be(claim)
-                self._toggle_player()
-            else:
-                self.prompt = "Proponent: "
+                self.game.proponent.has_to_be(claim)
 
     def do_has_to_be(self, argument):
         "When it is the Proponents turn, allows player to put forward an argument"
-        if self.current_player is not self.proponent:
+        if self.game.current_player is not self.game.proponent:
             return False
         try:
-            self.proponent.has_to_be(argument)
+            self.game.proponent.has_to_be(argument)
         except Exception:
             traceback.print_exc(file=sys.stdout)
         else:
             print("It has to be ", argument)
-            self._toggle_player()
 
     def do_could_be(self, argument):
         "When it is the Opponents turn, allows player to put forward an argument"
-        if self.current_player is not self.opponent:
+        if self.game.current_player is not self.game.opponent:
             return False
         try:
-            self.opponent.could_be(argument)
+            self.game.opponent.could_be(argument)
         except Exception:
             traceback.print_exc(file=sys.stdout)
         else:
             print("It could be ", argument)
-            self._toggle_player()
 
     def do_concede(self, arg):
         "When it is the Opponents turn, allows player to concede an argument"
-        if self.current_player is not self.opponent:
+        if self.game.current_player is not self.game.opponent:
             return False
         conceding_arg = self.game.last_argument.name
         try:
-            self.opponent.concede(conceding_arg)
-        except Exception:
+            self.game.opponent.concede(conceding_arg)
+        except Exception:  # THIS COULD BE GAMEOVER CATCHING??
             traceback.print_exc(file=sys.stdout)
         else:
             print("I concede ", conceding_arg)
 
     def do_retract(self, arg):
         "When it is the Opponents turn, allows player to retract an argument"
-        if self.current_player is not self.opponent:
+        if self.game.current_player is not self.game.opponent:
             return False
         retracting_arg = self.game.last_argument.name
         try:
-            self.opponent.retract(retracting_arg)
+            self.game.opponent.retract(retracting_arg)
         except Exception:
             traceback.print_exc(file=sys.stdout)
         else:
@@ -111,23 +95,23 @@ In game commands. You can also use new_game and quit anytime.
     def postcmd(self, stop, line):
         if stop:
             return stop
-        try:
-            while self.current_player and self.current_player.is_bot:
-                action, move = self.current_player.next_move()  # Hows this to work when both bots?
+        if self.game:
+            if self.game.current_player == self.game.proponent:
+                self.prompt = "Proponent: "
+            else:
+                self.prompt = "Opponent: "
+            if self.game.is_game_over():
+                print("Game is over")
+            while self.game.current_player and self.game.current_player.is_bot:
+                action, move = self.current_player.next_move()
                 operator.methodcaller(action, move.name)(self.current_player)
-                # Fuctional in Python is bad.
                 print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
-                if action in ("could_be", "has_to_be"):
-                    self._toggle_player()
-        except GameOverError as e:
-            print(e)
-            return True
-        try:
-            print("Arguments that attack {0} are {1}".format(
-                  self.game.last_argument,
-                  self.game.last_argument.minus()))  # bug here when retracting
-        except AttributeError as e:
-            return False
+            if self.game.last_argument:
+                print("Arguments that attack {0} are {1}".format(
+                      self.game.last_argument,
+                      self.game.last_argument.minus()))  # bug here when retracting
+        else:
+            self.prompt = "NO: "
 
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move?
 
@@ -138,13 +122,6 @@ In game commands. You can also use new_game and quit anytime.
     do_stop = do_quit
     do_close = do_quit
 
-    def _toggle_player(self):
-        if self.current_player is self.proponent:
-            self.current_player = self.opponent
-            self.prompt = "Opponent: "
-        else:
-            self.current_player = self.proponent
-            self.prompt = "Proponent: "
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:

@@ -1,5 +1,6 @@
 from argument import Argument
 from labelling import Labelling
+from player import Proponent, Opponent
 import time
 
 
@@ -17,6 +18,9 @@ class Game:
         self.last_argument = None
         self.main_claim = None  # Holds the first argument.
         self.retractable_args = None
+        self.proponent = Proponent(self)
+        self.opponent = Opponent(self)
+        self.current_player = self.proponent
 
     @classmethod
     def from_file(self, path):
@@ -43,6 +47,7 @@ class Game:
             self.main_claim = argument
         self.arguments.add(argument)
         self.last_argument = argument
+        self._toggle_player()
         return self
 
     def concede(self, argument):
@@ -56,7 +61,6 @@ class Game:
             if target == argument:  # Allows person to concede early.
                 raise InvalidMoveError(
                     "An attacker of this argument is not out.")
-        # import pdb; pdb.set_trace()
         self.retractable_args = argument.plus()  # Get from game.args instead
         return self._remove(argument)
 
@@ -67,6 +71,19 @@ class Game:
                 return self._remove(argument)
         raise InvalidMoveError(
             "There is no attacker of this argument that is in.")
+
+    def is_game_over(self):
+        if self.main_claim in self.complete_arguments:
+            return True
+        if self.last_argument and len(self.last_argument.minus()) == 0:
+            return True
+        return False
+
+    def _toggle_player(self):
+        if self.current_player == self.proponent:
+            self.current_player = self.opponent
+        else:
+            self.current_player = self.proponent
 
     def _can_argue_with(self, argument):
         if self.last_argument is None:  # First move
