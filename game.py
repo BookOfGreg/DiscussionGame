@@ -75,9 +75,19 @@ class Game:
     def is_game_over(self):
         if self.main_claim in self.complete_arguments:
             return True
-        if self.last_argument and len(self.last_argument.minus()) == 0:
+        if (self.last_argument and len(self.last_argument.minus()) == 0
+                and self.current_player == self.proponent):
             return True
         return False
+
+    def game_over_reason(self):
+        if not self.is_game_over():
+            return "Game is not over yet"
+        if self.main_claim in self.complete_arguments:
+            return "Main claim has been condeded, Proponent wins the argument"
+        if (self.last_argument and len(self.last_argument.minus()) == 0
+                and self.current_player == self.proponent):
+            return "There is no counter to the last argument, Opponent wins the argument"
 
     def _toggle_player(self):
         if self.current_player == self.proponent:
@@ -95,6 +105,9 @@ class Game:
     def _remove(self, argument):
         self.arguments = self.arguments.difference({argument})
         self.complete_arguments.add(argument)
+
+        #  if (att, targ) in args, remove
+        #  complete << (att, targ)
         if len(self.attack_relations) > 0:
             last_attack_relation = self.attack_relations.pop(-1)
             self.complete_attack_relations.append(last_attack_relation)

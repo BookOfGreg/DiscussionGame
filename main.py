@@ -95,24 +95,40 @@ In game commands. You can also use new_game and quit anytime.
     def postcmd(self, stop, line):
         if stop:
             return stop
-        if self.game:
-            if self.game.current_player == self.game.proponent:
-                self.prompt = "Proponent: "
-            else:
-                self.prompt = "Opponent: "
+        self._set_prompt()
+        if not self.game:
+            return False
+        if self.game.is_game_over():
+            print("Game is over, but you can continue the argument.")
+            print(self.game.game_over_reason())
+        while self.game.current_player and self.game.current_player.is_bot:
+            action, move = self.game.current_player.next_move()
+            operator.methodcaller(action, move.name)(self.game.current_player)
+            print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
             if self.game.is_game_over():
-                print("Game is over")
-            while self.game.current_player and self.game.current_player.is_bot:
-                action, move = self.current_player.next_move()
-                operator.methodcaller(action, move.name)(self.current_player)
-                print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
-            if self.game.last_argument:
-                print("Arguments that attack {0} are {1}".format(
-                      self.game.last_argument,
-                      self.game.last_argument.minus()))  # bug here when retracting
-        else:
-            self.prompt = "NO: "
+                print("Game is over, bot has finished its argument.")
+                print(self.game.game_over_reason())
+                return True
+            self._set_prompt()
+        self._inform_possible_arguments()
 
+    def _inform_possible_arguments(self):
+        if self.game.retractable_args:
+            print("Arguments must be retracted: {0}".format(self.game.retractable_args))
+            return
+        if self.game.last_argument:
+            print("Arguments that attack {0} are {1}".format(
+                  self.game.last_argument,
+                  self.game.last_argument.minus()))  # bug here when retracting
+
+    def _set_prompt(self):
+        if not self.game:
+            self.prompt = "Cmd: "
+            return
+        if self.game.current_player == self.game.proponent:
+            self.prompt = "Proponent: "
+        else:
+            self.prompt = "Opponent: "
     # def completedefault(self, text, line, begidx, engidx):  # use this to suggest next move?
 
     def do_quit(self, _):
