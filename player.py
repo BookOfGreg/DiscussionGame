@@ -9,7 +9,7 @@ class Proponent:
 
     def has_to_be(self, argument_name):
         argument = Argument.find(argument_name)
-        return self.game.add(argument)
+        return self.game.has_to_be(argument)
 
     def next_move(self):
         "Bot plays the move"
@@ -35,7 +35,7 @@ class Opponent:
 
     def could_be(self, argument_name):
         argument = Argument.find(argument_name)
-        return self.game.add(argument)
+        return self.game.could_be(argument)
 
     def concede(self, argument_name):
         argument = Argument.find(argument_name)

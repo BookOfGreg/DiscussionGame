@@ -37,6 +37,8 @@ class Argument:
                               AND arguments.name=?""",
                                     (self.name,)).fetchall()))
 
+    targets = plus
+
     def minus(self):
         return set(self._to_args(
             Argument.cursor.execute("""SELECT attacker_id
@@ -44,6 +46,8 @@ class Argument:
                               ON target_id=arguments.id
                               AND arguments.name=?""",
                                     (self.name,)).fetchall()))
+
+    attackers = minus
 
     def _to_args(self, relations):
         args = list()

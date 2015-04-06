@@ -17,7 +17,7 @@ class Game:
         self.kb = knowledge_base
         self.last_argument = None
         self.main_claim = None  # Holds the first argument.
-        self.retractable_args = None
+        self.retractable_args = list()
         self.proponent = Proponent(self)
         self.opponent = Opponent(self)
         self.current_player = self.proponent
@@ -35,7 +35,7 @@ class Game:
         Labelling.grounded(kb)
         return Game(kb)
 
-    def add(self, argument):
+    def _add(self, argument):
         if not self._can_argue_with(argument):
             raise InvalidMoveError("Argument {0} does not attack last argument".format(argument))
         if self.retractable_args:
@@ -50,10 +50,10 @@ class Game:
         self._toggle_player()
         return self
 
+    could_be = _add
+    has_to_be = _add
+
     def concede(self, argument):
-        if argument != self.last_argument:
-            raise InvalidMoveError(
-                "Cannot concede anything but the last argument.")
         if self.retractable_args:
             raise InvalidMoveError(
                 "Must retract arguments if available. {0}".format(self.retractable_args))
@@ -61,14 +61,34 @@ class Game:
             if target == argument:  # Allows person to concede early.
                 raise InvalidMoveError(
                     "An attacker of this argument is not out.")
-        self.retractable_args = argument.plus()  # Get from game.args instead
-        return self._remove(argument)
+        self.retractable_args = list(set(argument.plus()).intersection(self.arguments)
+                                                         .difference(set(self.complete_arguments)))
+        self.arguments = self.arguments.difference({argument})
+        self.complete_arguments.add(argument)
+
+        for arg in argument.plus():
+            attack_relation = (argument, arg)
+            self.complete_attack_relations.append(attack_relation)
+            if attack_relation in self.attack_relations:
+                self.attack_relations.remove(attack_relation)
+        self.last_argument = argument
 
     def retract(self, argument):
         for attacker, target in self.complete_attack_relations:
             if target == argument:
                 self.retractable_args.remove(argument)
-                return self._remove(argument)
+
+                self.arguments = self.arguments.difference({argument})
+                self.complete_arguments.add(argument)
+
+                for arg in argument.plus():
+                    attack_relation = (argument, arg)
+                    self.complete_attack_relations.append(attack_relation)
+                    if attack_relation in self.attack_relations:
+                        self.attack_relations.remove(attack_relation)
+                self.last_argument = next(iter(argument.plus().intersection(self.arguments)))
+                return
+
         raise InvalidMoveError(
             "There is no attacker of this argument that is in.")
 
@@ -101,18 +121,6 @@ class Game:
         if argument in self.complete_arguments:
             return False
         return self.last_argument in argument.plus()
-
-    def _remove(self, argument):
-        self.arguments = self.arguments.difference({argument})
-        self.complete_arguments.add(argument)
-
-        #  if (att, targ) in args, remove
-        #  complete << (att, targ)
-        if len(self.attack_relations) > 0:
-            last_attack_relation = self.attack_relations.pop(-1)
-            self.complete_attack_relations.append(last_attack_relation)
-            self.last_argument = last_attack_relation[-1]
-        return self
 
 
 class InvalidMoveError(Exception):

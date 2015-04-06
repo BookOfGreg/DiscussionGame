@@ -65,7 +65,8 @@ In game commands. You can also use new_game and quit anytime.
         "When it is the Opponents turn, allows player to concede an argument"
         if self.game.current_player is not self.game.opponent:
             return False
-        conceding_arg = self.game.last_argument.name
+        # conceding_arg = self.game.last_argument.name
+        conceding_arg = arg
         try:
             self.game.opponent.concede(conceding_arg)
         except Exception:  # THIS COULD BE GAMEOVER CATCHING??
@@ -77,7 +78,8 @@ In game commands. You can also use new_game and quit anytime.
         "When it is the Opponents turn, allows player to retract an argument"
         if self.game.current_player is not self.game.opponent:
             return False
-        retracting_arg = self.game.last_argument.name
+        # retracting_arg = self.game.last_argument.name
+        retracting_arg = arg
         try:
             self.game.opponent.retract(retracting_arg)
         except Exception:
@@ -88,8 +90,10 @@ In game commands. You can also use new_game and quit anytime.
     def do_current_state(self, arg):
         print("Last Arg: {0}".format(self.game.last_argument))
         print("In Progress Args: {0}".format(self.game.arguments))
+        print("Used Attacks: {0}".format(self.game.attack_relations))
         print("Retractable Args: {0}".format(self.game.retractable_args))
         print("Completed Args: {0}".format(self.game.complete_arguments))
+        print("Completed Attacks: {0}".format(self.game.complete_attack_relations))
         print("Main Claim: {0}".format(self.game.main_claim))
 
     def postcmd(self, stop, line):
@@ -117,9 +121,12 @@ In game commands. You can also use new_game and quit anytime.
             print("Arguments must be retracted: {0}".format(self.game.retractable_args))
             return
         if self.game.last_argument:
-            print("Arguments that attack {0} are {1}".format(
-                  self.game.last_argument,
-                  self.game.last_argument.minus()))  # bug here when retracting
+            if self.game.last_argument.minus():
+                print("Arguments that attack {0} are {1}".format(
+                      self.game.last_argument,
+                      self.game.last_argument.minus()))  # bug here when retracting
+            else:
+                print("No aruments attack {0}".format(self.game.last_argument))
 
     def _set_prompt(self):
         if not self.game:
