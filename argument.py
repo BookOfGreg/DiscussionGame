@@ -4,11 +4,11 @@ import operator
 from random import randint
 
 try:
-    os.remove("./db2.sqlite3")
+    os.remove("./db.sqlite3")
 except OSError:
     pass
 
-DB_PATH = "./db2.sqlite3"
+DB_PATH = "./db.sqlite3"  # to be used when no file specified
 
 
 class Argument:
@@ -130,6 +130,15 @@ class Argument:
         return Argument(arg[1], arg[2], arg[3])
 
     @classmethod
+    def from_database(cls, path):
+        if Argument.conn is not None:
+            Argument.conn.close()
+        Argument.conn = sqlite3.connect(path)
+        Argument.conn.isolation_level = None
+        Argument.cursor = Argument.conn.cursor()
+        return Argument
+
+    @classmethod
     def from_file(cls, path):
         file = open(path, "r")
         arguments = set()
@@ -140,11 +149,11 @@ class Argument:
             attacker, target = line.strip().split(" ")
             relations.append((attacker, target))
         file.close()
-        return Argument.from_af(arguments, relations)
+        return Argument.from_af(arguments, relations, path+".sqlite")
 
     @classmethod
-    def from_af(cls, arguments, relations):
-        Argument._reset_db()
+    def from_af(cls, arguments, relations, path=DB_PATH):
+        Argument._reset_db(path)
         for arg in arguments:
             Argument.cursor.execute(
                 "INSERT INTO arguments (name, label) VALUES(?, 'Undec')", (arg,))
@@ -153,21 +162,17 @@ class Argument:
                 """INSERT INTO attacks(attacker_id, target_id)
                 SELECT * FROM (SELECT id FROM arguments WHERE name=?) attacker,
                 (SELECT id FROM arguments WHERE name=?) target""", (attacker, target))
-                #"""INSERT INTO attacks (attacker_id, target_id)
-                #WITH attacker AS (SELECT id FROM arguments WHERE name=?),
-                #target AS (SELECT id FROM arguments WHERE name=?)
-                #SELECT * from attacker, target""", (attacker, target))
         return Argument
 
     @classmethod
-    def _reset_db(cls):
-        Argument._delete_db()
-        Argument.conn = Argument._create_db()
+    def _reset_db(cls, path):
+        Argument._delete_db(path)
+        Argument.conn = Argument._create_db(path)
         Argument.cursor = Argument.conn.cursor()
 
     @classmethod
-    def _create_db(cls):
-        conn = sqlite3.connect(DB_PATH)
+    def _create_db(cls, path):
+        conn = sqlite3.connect(path)
         conn.isolation_level = None
         cursor = conn.cursor()
         cursor.execute("""CREATE TABLE arguments(id INTEGER PRIMARY KEY,
@@ -181,11 +186,11 @@ class Argument:
         return conn
 
     @classmethod
-    def _delete_db(cls):
+    def _delete_db(cls, path):
         try:
             if Argument.conn is not None:
                 Argument.conn.close()
-            os.remove(DB_PATH)
+            os.remove(path)
         except OSError:
             pass
 

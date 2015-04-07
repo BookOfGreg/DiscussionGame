@@ -2,6 +2,7 @@ from argument import Argument
 from labelling import Labelling
 from player import Proponent, Opponent
 import time
+import os
 
 
 class Game:
@@ -24,9 +25,13 @@ class Game:
 
     @classmethod
     def from_file(self, path):
-        kb = Argument.from_file(path)
-        print("Loaded into DB, Labelling.", time.process_time())
-        Labelling.grounded(kb)
+        if os.path.isfile(path+".sqlite"):
+            kb = Argument.from_database(path+".sqlite")  # Bit of bad factoring.
+            print("Labelled DB detected. Using that.")
+        else:
+            kb = Argument.from_file(path)
+            print("Loaded into DB, Labelling.", time.process_time())
+            Labelling.grounded(kb)
         return Game(kb)
 
     @classmethod

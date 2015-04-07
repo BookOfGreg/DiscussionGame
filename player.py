@@ -17,12 +17,13 @@ class Proponent:
         if not self.game.last_argument:
             proposed_arg = Argument.get_random()
             return "has_to_be", proposed_arg  # Proponents first move
-        args = self.game.last_argument.minus()
-        args = [a for a in args if (a not in self.game.complete_arguments and
-                                    a not in self.game.arguments and
-                                    a.label == "In")]
+        possible_args = self.game.last_argument.minus()
+        args = [a for a in possible_args if (a not in self.game.complete_arguments and
+                                             a not in self.game.arguments and
+                                             a.label == "In")]
         if not args:
-            raise GameOverError("Can't rule out your argument {0}".format(self.game.last_argument))
+            args = [a for a in possible_args if (a not in self.game.complete_arguments and
+                                                 a not in self.game.arguments)]
         args.sort(key=lambda arg: arg.step if arg.step else 1000)
         proposed_arg = args[0]
         return "has_to_be", proposed_arg
@@ -59,12 +60,3 @@ class Opponent:
         args.sort(key=lambda arg: arg.step if arg.step else 1000)
         proposed_arg = args[0]
         return "could_be", proposed_arg
-
-
-class GameOverError(Exception):
-
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
