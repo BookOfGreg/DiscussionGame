@@ -107,6 +107,8 @@ class Game:
 
     def game_over_reason(self):
         if not self.is_game_over():
+            if self.main_claim in self.last_argument.minus():
+                return "Next move was a contradiction, Opponent wins"
             return "Game is not over yet"
         if self.main_claim in self.complete_arguments:
             return "Main claim has been condeded, Proponent wins the argument"

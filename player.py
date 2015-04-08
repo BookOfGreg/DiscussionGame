@@ -24,6 +24,8 @@ class Proponent:
         if not args:
             args = [a for a in possible_args if (a not in self.game.complete_arguments and
                                                  a not in self.game.arguments)]
+        if not args:  # I hate python
+            return None, None
         args.sort(key=lambda arg: arg.step if arg.step else 1000)
         proposed_arg = args[0]
         return "has_to_be", proposed_arg

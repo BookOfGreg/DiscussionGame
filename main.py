@@ -65,7 +65,6 @@ In game commands. You can also use new_game and quit anytime.
         "When it is the Opponents turn, allows player to concede an argument"
         if self.game.current_player is not self.game.opponent:
             return False
-        # conceding_arg = self.game.last_argument.name
         conceding_arg = arg
         try:
             self.game.opponent.concede(conceding_arg)
@@ -78,7 +77,6 @@ In game commands. You can also use new_game and quit anytime.
         "When it is the Opponents turn, allows player to retract an argument"
         if self.game.current_player is not self.game.opponent:
             return False
-        # retracting_arg = self.game.last_argument.name
         retracting_arg = arg
         try:
             self.game.opponent.retract(retracting_arg)
@@ -107,6 +105,10 @@ In game commands. You can also use new_game and quit anytime.
             print(self.game.game_over_reason())
         while self.game.current_player and self.game.current_player.is_bot:
             action, move = self.game.current_player.next_move()
+            if action is None:
+                print("Game is over, bot has finished its argument.")
+                print(self.game.game_over_reason())
+                return True
             operator.methodcaller(action, move.name)(self.game.current_player)
             print("Bot {0}{1} {2}".format(self.prompt, action, move.name))
             if self.game.is_game_over():
