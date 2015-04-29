@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # import pdb; pdb.set_trace()
 import time
 import cmd
@@ -8,7 +9,7 @@ from game import Game
 
 
 class GameShell(cmd.Cmd):
-    intro = """This is the grounded persuasion game. Commands:
+    intro = """This is the grounded discussion game. Commands:
     'new_game [file_path] [bot proponent] [bot opponent] [claim]' - to start a game
             -bot options are true/yes/y for bot. Other or blank for human player.
             -claim is the label of the argument you want to be main claim if the
