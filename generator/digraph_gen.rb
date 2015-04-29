@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'set'
+
 class Array
   def dequeue
     self.shift
@@ -22,15 +24,15 @@ class DiGraph
   attr_accessor :nodes, :attacks
   def initialize nodes
     @nodes = nodes
-    @attacks = []
+    @attacks = Set.new
   end
 
   def add_attack attacker, target
-    @attacks.enqueue [attacker, target] if attacker
+    @attacks.add [attacker, target] if attacker
   end
 
   def save_as filename
-    File.open("../results/#{filename}", "w") do |f|
+    File.open("../graphs/#{filename}", "w") do |f|
       f.puts @nodes.join " "
       @attacks.each do |att|
         f.puts att.join " "
@@ -151,16 +153,16 @@ end
 # (4999..29999).step(5000) do |node_count|
 (5..95).step(10) do |node_count|
   names = generate_node_names node_count
-  graph = looping_graph_builder names
-  graph.save_as "looping_graph_#{node_count}"
+  # graph = looping_graph_builder names
+  # graph.save_as "looping_graph_#{node_count}"
   # graph = balanced_tree_builder names, 2
   # graph.save_as "balanced_binary_tree_#{node_count}"
   # graph = balanced_tree_builder names, 20
   # graph.save_as "balanced_20_tree_#{node_count}"
   # graph = worst_case_tree_builder names, 2
   # graph.save_as "worst_case_tree_#{node_count}"
-  # graph = random_graph_builder names
-  # graph.save_as "random_graph_#{node_count}"
+  graph = random_graph_builder names
+  graph.save_as "random_graph_#{node_count}"
   # graph = fully_connected_builder names
   # graph.save_as "fully_connected_graph_#{node_count}"
 end

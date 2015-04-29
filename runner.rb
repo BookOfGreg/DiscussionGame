@@ -17,7 +17,7 @@
   puts file_name
   next if file_name == '.' or file_name == '..'
   30.times do |num|
-    output = `python main.py ./graphs/#{file_name} 0`
+    output = `python main.py ./graphs/#{file_name} 1`
     File.open("./results/#{file_name}_result_#{num}", "w+") do |f|
       f.puts output
     end
