@@ -150,17 +150,17 @@ end
 # graph = unbalanced_tree_builder names, branches_count
 # graph.save_as "unbalanced_tree"
 
-# (4999..29999).step(5000) do |node_count|
-(5..95).step(10) do |node_count|
+(50..450).step(200) do |node_count|
+# (5..95).step(10) do |node_count|
   names = generate_node_names node_count
-  # graph = looping_graph_builder names
-  # graph.save_as "looping_graph_#{node_count}"
-  # graph = balanced_tree_builder names, 2
-  # graph.save_as "balanced_binary_tree_#{node_count}"
-  # graph = balanced_tree_builder names, 20
-  # graph.save_as "balanced_20_tree_#{node_count}"
-  # graph = worst_case_tree_builder names, 2
-  # graph.save_as "worst_case_tree_#{node_count}"
+  graph = looping_graph_builder names
+  graph.save_as "looping_graph_#{node_count}"
+  graph = balanced_tree_builder names, 2
+  graph.save_as "balanced_binary_tree_#{node_count}"
+  graph = balanced_tree_builder names, 20
+  graph.save_as "balanced_20_tree_#{node_count}"
+  graph = worst_case_tree_builder names, 2
+  graph.save_as "worst_case_tree_#{node_count}"
   graph = random_graph_builder names
   graph.save_as "random_graph_#{node_count}"
   # graph = fully_connected_builder names
