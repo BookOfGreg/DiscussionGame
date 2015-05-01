@@ -3,6 +3,8 @@
 As the user you can play against other humans, a single automated opponent, a
 single automated proponent, or let them fight each other!
 
+Future updates https://github.com/BookOfGreg/DiscussionGame
+
 ## File manifest
 
 /gregory_myers
