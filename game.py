@@ -98,6 +98,8 @@ class Game:
             "There is no attacker of this argument that is in.")
 
     def is_game_over(self):
+        if not self.main_claim:
+            return False
         if self.main_claim in self.complete_arguments:
             return True
         if (self.main_claim in self.last_argument.minus()
