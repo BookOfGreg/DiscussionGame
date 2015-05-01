@@ -1,0 +1,103 @@
+\documentclass[BSc]{abdnthesis}
+
+\usepackage[round,colon,authoryear]{natbib}
+\setlength{\bibsep}{0pt}
+\bibliographystyle{apalike}
+
+\let\oldcite\cite
+\renewcommand{\cite}[1]{\citep{#1}}
+
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[toc,page]{appendix}
+\usepackage{pdfpages}
+
+\usepackage[nottoc,notlot]{tocbibind}
+
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes.geometric}
+\tikzset{
+  main node/.style={circle,draw,very thick,font=\sffamily\Large\bfseries},
+  in node/.style={circle,draw=green,very thick,font=\sffamily\Large\bfseries},
+  out node/.style={circle,draw=red,very thick,font=\sffamily\Large\bfseries},
+  class node/.style={rectangle,rounded corners,draw,very thick,font=\sffamily},
+  database node/.style={cylinder,shape border rotate=90,aspect=0.33,draw,very thick,font=\sffamily}
+}
+
+
+\begin{document}
+
+\chapter{Maintenance Manual} \label{appendix:user-manual}
+
+\section{Pre-requisites}
+This program has been ran and tested on Mac OSX 10.9.5 and Debian 7 Wheezy 64-bit systems.
+Python 3.4.2 is the preferred runtime\footnote{https://www.python.org/}. This software is incompatible with the Python 2.x branch.
+
+Ruby\footnote{https://www.ruby-lang.org/en/} is needed for the digraph\_generator.
+
+Both systems are designed to have as few dependencies as possible so \emph{no external package installations are needed} outside of Ruby and Python3 languages.
+
+Both languages chosen are interpreted languages so no installation, building or compilation is needed.
+
+\section{Bug log}
+Though the system makes great effort to accommodate all possible pathological cases for graphs and move combinations, the system makes no attempt to defend against improper use, and so many things such as incorrect file formats or using the API incorrectly will cause it to crash in a variety of colourful ways.
+
+Only one instance of the Game class and the program should be run due to the use of SQLite persisted to disk.
+
+\section{File Listing}
+
+\begin{description}
+\item[Path] Description
+
+\item[main.py] This file contains GameShell class which inherits CMD and provides the interactive command line interface. The purpose of this class is for user interface only and avoids containing game logic. Within the postcmd method, there is logic to manage the automated playing behaviour. Most behaviour for the other methods is delegated to the Game class. The main method in this file also can handle command line arguments provided.
+\item[game.py] This file provides the Game class and behaves as the adjudicator for the rules. This class should be a singleton due to the use of SQLite. This class provides current\_player to give the correct proponent or opponent according to the rules, and will throw InvalidMove error if either tries to make an invalid move. The game state can also be queried through is\_game\_over and game\_over\_reason. Game provides the from\_file and from\_af methods which instantiate the game with a knowledge base.
+\item[player.py] This file provides two classes, Proponent and Opponent which are both initialized with an instance of Game and delegate the moves to it. Proponent implements has\_to\_be and next\_move, Opponent implements could\_be, concede, retract, and next\_move. The next\_move method on both classes returns the string representation of the desired move and the instance of the argument it suggests.
+\item[argument.py] This file contains the entire SQLite section. It implements the Argument class which has class methods for managing the SQLite database, loading graphs and files, and searching for arguments and relations. Instance methods on Argument allow for accessing the name, label and step (minmax numbering)
+\item[labelling.py] This labeller is based on SASsY ASPIC- implementation with modifications to make it appropriate for the use of this system. It has one class method, grounded, which accepts an Argument Framework (In this case the Argument class) and calls get\_arguments on it and updates the knowledge base with correct labelling and minmax numbers.
+\item[generator/digraph\_gen.rb] This file contains several graph generators and saves to the format seen in Appendix \ref{appendix:file-format}. The DiGraph class is instantiated with nodes and contains the attribute nodes and the method add\_attack. The graph generators are fully\_connected\_builder, random\_graph\_builder, balanced\_tree\_builder, unbalanced\_tree\_builder, worst\_case\_tree\_builder, looping\_graph\_builder. All these methods take an array of names as one parameter, and balanced\_tree\_builder, unbalanced\_tree\_builder, worst\_case\_tree\_builder take the number of child nodes each node should have. generate\_node\_names provides arrays of node names when provided the number of names you desire.
+\item[runner.rb] This file is a naive script that will attempt to run every file in the graphs directory through main.py and output to the results folder.
+\end{description}
+
+\section{Future Usage}
+This software is highly modular in the design, meaning that future usage will be straight forward. To interface programmatically in Python, you will need the files \emph{game, player, argument, labelling} and in your new file run \texttt{from game import Game}. This will grant you access to both proponent and opponent through the current\_user variable. For instance if you were to make a new web interface, your controller file would include Game, send the user a prompt for input dependant on the current\_user and retractable\_arguments variables, then with the return value for a move just delegate directly to the available player.
+
+If you need to make changes to how the SQLite Database is used, please inspect the Argument.py file, in which you can find database creation SQL in the \_create\_db private class method. There are also \_reset\_db and \_delete\_db methods for database control. All SQL used within should be database agnostic with the exception of data types in the \_create\_db method as SQLite\footnote{https://www.sqlite.org/datatype3.html}, PostgreSQL\footnote{http://www.postgresql.org/docs/9.3/static/datatype.html} and MySQL\footnote{http://dev.mysql.com/doc/refman/5.6/en/data-types.html} data types are all different.
+
+You can also use the Argument.py file in isolation to load a previously ran discussion with the from\_database method. Once loaded you will be able to instantiate arguments and use the plus and minus methods to explore attacks without using SQL directly.
+
+\end{document}

@@ -13,6 +13,7 @@ single automated proponent, or let them fight each other!
  |- graphs/                generated graphs from digraph_gen are placed here.
  |- labelling.py
  |- main.py                main file, run with "python3 main.py". See user manual.
+ |- maintenance-manual.pdf additional info on how to use and modify.
  |- main_test.py           "python3 -m unittest discover -p '\''*_test.py'\''" (retired tests)
  |- player.py
  |- results/               results from runner.rb processing graphs/ placed here.
